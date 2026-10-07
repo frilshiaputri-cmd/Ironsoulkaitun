@@ -39,7 +39,7 @@ local function getPatcher()
     end
 
     local source = game:HttpGet(
-        "https://raw.githubusercontent.com/MUshihara/ironsoulkaitun/main/systems/patch_loader.lua?t="
+        "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/systems/patch_loader.lua?t="
             .. tostring(os.time())
     )
 
@@ -101,7 +101,7 @@ local function routedLoadRaw(path)
     end
 
     local source = game:HttpGet(
-        "https://raw.githubusercontent.com/MUshihara/ironsoulkaitun/main/"
+        "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/"
             .. tostring(path)
             .. "?t="
             .. tostring(os.time())
