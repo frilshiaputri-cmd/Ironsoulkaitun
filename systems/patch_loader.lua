@@ -356,9 +356,14 @@ return function(opts)
         }
     end
 
+    -- The immutable base source may live in the upstream repository,
+    -- while patch files are maintained in this repository.
+    local baseRepository =
+        opts.base_repository or repository
+
     local baseUrl =
         "https://raw.githubusercontent.com/"
-        .. repository
+        .. baseRepository
         .. "/"
         .. baseCommit
         .. "/"
