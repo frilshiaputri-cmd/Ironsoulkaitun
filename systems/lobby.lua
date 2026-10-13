@@ -9,7 +9,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
-local BASE = "https://raw.githubusercontent.com/MUshihara/ironsoulkaitun/main/"
+local BASE = "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/"
 
 local function status(text)
     text = tostring(text or "")
@@ -241,7 +241,8 @@ local function getPatcher()
 end
 
 return getPatcher()({
-    repository = "MUshihara/ironsoulkaitun",
+    repository = "frilshiaputri-cmd/Ironsoulkaitun",
+    base_repository = "MUshihara/ironsoulkaitun",
     base_commit = "1d47f7f50ec8ecd92bca691b17d586d6bdecfa55",
     path = "systems/lobby.lua",
     patch_paths = {
