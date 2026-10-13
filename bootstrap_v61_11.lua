@@ -507,7 +507,8 @@ local function loadRaw(path)
             .. " | "
             .. tostring(source)
 
-        diag("ERROR", message)\n        warn("[K5Hub V1] " .. message)
+        diag("ERROR", message)
+        warn("[K5Hub V1] " .. message)
         status("ERROR | " .. shortError(message))
         return false
     end
