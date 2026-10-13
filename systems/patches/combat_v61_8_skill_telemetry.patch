@@ -250,3 +250,11 @@
              if castSkill("Skill2") then
                  task.wait(0.16)
              end
++
++        -- V61.32: automatically cast Skill1 whenever its native callback is ready.
++        elseif Callbacks.Skill1
++            and skillReady("Skill1")
++        then
++            if castSkill("Skill1") then
++                task.wait(0.16)
++            end
