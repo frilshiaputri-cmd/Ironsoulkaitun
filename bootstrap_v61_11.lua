@@ -114,6 +114,20 @@ do
     }
 end
 
+-- Headless K5 Auto Redeem feature only; no K5 UI is loaded.
+task.spawn(function()
+    local url = "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/systems/auto_redeem.lua"
+    local ok, err = pcall(function()
+        local source = game:HttpGet(url .. "?t=" .. tostring(os.time()))
+        local fn, loadErr = loadstring(source)
+        assert(fn, loadErr)
+        fn()
+    end)
+    if not ok then
+        warn("[IronSoul AutoRedeem] Loader failed: " .. tostring(err))
+    end
+end)
+
 if type(setfpscap) == "function"
     and tonumber(Config.FPS_CAP)
 then
