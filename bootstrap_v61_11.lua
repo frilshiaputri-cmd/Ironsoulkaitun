@@ -640,15 +640,39 @@ elseif looksLikeDungeon() then
     route = "systems/combat.lua"
     routeName = "Dungeon"
 else
-    local message =
-        "Unknown place | "
-        .. tostring(game.PlaceId)
-        .. " | WorldName="
-        .. tostring(workspace:GetAttribute("WorldName"))
+    -- World/round objects can appear several seconds after the teleport finishes.
+    -- Retry route detection instead of exiting immediately during map loading.
+    for attempt = 1, 30 do
+        task.wait(0.5)
 
-    warn("[K5Hub V1] " .. message)
-    status(message)
-    return
+        if game.PlaceId == TUTORIAL_PLACE_ID then
+            route = "systems/tutorial_v61_10.lua"
+            routeName = "Tutorial"
+            break
+        elseif game.PlaceId == LOBBY_PLACE_ID
+            or workspace:GetAttribute("WorldName") == "Lobby"
+        then
+            route = "systems/lobby.lua"
+            routeName = "Lobby"
+            break
+        elseif looksLikeDungeon() then
+            route = "systems/combat.lua"
+            routeName = "Dungeon"
+            break
+        end
+    end
+
+    if not route then
+        local message =
+            "Unknown place after 15s | "
+            .. tostring(game.PlaceId)
+            .. " | WorldName="
+            .. tostring(workspace:GetAttribute("WorldName"))
+
+        warn("[K5Hub V1] " .. message)
+        status(message)
+        return
+    end
 end
 
 getgenv().IronSoulRuntime = {
