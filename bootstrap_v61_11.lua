@@ -1,5 +1,5 @@
 --========================================================--
--- IRON SOUL KAITUN - CONTINUOUS V61.11 MOBILE/STABLE BOOT
+-- K5HUB V1 - MOBILE/STABLE BOOT WITH DIAGNOSTICS
 --========================================================--
 
 getgenv().IronSoulConfig =
@@ -12,7 +12,7 @@ getgenv().IronSoulConfig =
     }
 
 local Config = getgenv().IronSoulConfig
-local VERSION = "61.11"
+local VERSION = "K5HubV1"
 local BASE =
     "https://raw.githubusercontent.com/"
     .. "frilshiaputri-cmd/Ironsoulkaitun/main/"
@@ -20,6 +20,43 @@ local BASE =
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
+
+-- K5Hub V1 diagnostics: keep recent events and runtime snapshots for debugging.
+local DIAG_FILE = "K5Hub_V1_Diagnostics.txt"
+local DIAG_MAX_CHARS = 12000
+local diagLines = {}
+local function diag(level, message)
+    local line = string.format(
+        "[%s] [%s] place=%s user=%s | %s",
+        os.date("%Y-%m-%d %H:%M:%S"),
+        tostring(level),
+        tostring(game.PlaceId),
+        LocalPlayer and tostring(LocalPlayer.Name) or "?",
+        tostring(message)
+    )
+    table.insert(diagLines, line)
+    while #diagLines > 80 do table.remove(diagLines, 1) end
+    print("[K5Hub V1 Diagnostics] " .. line)
+    if type(writefile) == "function" then
+        pcall(function()
+            local old = ""
+            if type(readfile) == "function" and type(isfile) == "function" and isfile(DIAG_FILE) then
+                old = readfile(DIAG_FILE) or ""
+            end
+            local combined = old .. (old ~= "" and "\\n" or "") .. line
+            if #combined > DIAG_MAX_CHARS then
+                combined = string.sub(combined, #combined - DIAG_MAX_CHARS + 1)
+            end
+            writefile(DIAG_FILE, combined)
+        end)
+    end
+end
+getgenv().K5HubDiagnostics = {
+    Log = function(message) diag("INFO", message) end,
+    Error = function(message) diag("ERROR", message) end,
+    File = DIAG_FILE,
+}
+diag("INFO", "bootstrap entry started; version=K5Hub V1")
 
 local TUTORIAL_PLACE_ID = 76701861705540
 local LOBBY_PLACE_ID = 117533937949084
@@ -190,7 +227,7 @@ end
 local RealQueue, RealQueueName = findRealTeleportQueue()
 
 local Caps = {
-    Version = "V61.11",
+    Version = "K5Hub V1",
     Executor = executorName(),
     Touch = UserInputService.TouchEnabled == true,
     Queue = type(RealQueue) == "function",
@@ -252,7 +289,7 @@ local function ensureStatusGui()
     label.TextWrapped = true
     label.TextSize = 12
     label.Font = Enum.Font.Code
-    label.Text = "IronSoul V61.11 | booting"
+    label.Text = "K5Hub V1 | booting"
     label.Parent = gui
 
     local corner = Instance.new("UICorner")
@@ -277,7 +314,7 @@ local function status(text)
         return
     end
 
-    local line = "IronSoul V61.11 | " .. text
+    diag((string.sub(text, 1, 5) == "ERROR" or string.sub(text, 1, 5) == "STUCK") and "ERROR" or "STATUS", text)\n    local line = "K5Hub V1 | " .. text
     local label = ensureStatusGui()
 
     if label then
@@ -289,7 +326,7 @@ local function status(text)
             writefile,
             "IronSoul_MobileStatus_V61_11.txt",
             table.concat({
-                "Version=V61.11",
+                "Version=K5Hub V1",
                 "Executor=" .. tostring(Caps.Executor),
                 "Touch=" .. tostring(Caps.Touch),
                 "NativeQueue=" .. tostring(Caps.Queue),
@@ -451,7 +488,7 @@ local function loadRaw(path)
             .. " | "
             .. tostring(source)
 
-        warn("[IronSoul V61.11] " .. message)
+        diag("ERROR", message)\n        warn("[K5Hub V1] " .. message)
         status("ERROR | " .. shortError(message))
         return false
     end
@@ -465,7 +502,7 @@ local function loadRaw(path)
             .. " | "
             .. tostring(normalizeErr)
 
-        warn("[IronSoul V61.11] " .. message)
+        warn("[K5Hub V1] " .. message)
         status("ERROR | " .. shortError(message))
         return false
     end
@@ -479,7 +516,7 @@ local function loadRaw(path)
             .. " | "
             .. tostring(err)
 
-        warn("[IronSoul V61.11] " .. message)
+        warn("[K5Hub V1] " .. message)
         status("ERROR | " .. shortError(message))
         return false
     end
@@ -493,7 +530,7 @@ local function loadRaw(path)
             .. " | "
             .. tostring(result)
 
-        warn("[IronSoul V61.11] " .. message)
+        warn("[K5Hub V1] " .. message)
         status("ERROR | " .. shortError(message))
         return false
     end
@@ -512,7 +549,7 @@ getgenv().IronSoulConfig = getgenv().IronSoulConfig or {
     LEVEL_STOP = %s,
 }
 loadstring(game:HttpGet(
-    %q .. "?isv=61.11&t=" .. tostring(os.time())
+    %q .. "?isv=k5hub-v1&t=" .. tostring(os.time())
 ))()
 ]],
         tostring(tonumber(Config.FPS_CAP) or 8),
@@ -584,20 +621,20 @@ else
         .. " | WorldName="
         .. tostring(workspace:GetAttribute("WorldName"))
 
-    warn("[IronSoul V61.11] " .. message)
+    warn("[K5Hub V1] " .. message)
     status(message)
     return
 end
 
 getgenv().IronSoulRuntime = {
-    Version = "V61.11",
+    Version = "K5Hub V1",
     Route = route,
     PlaceId = game.PlaceId,
     StartedAt = os.clock(),
     NativeTeleportQueue = Caps.Queue,
 }
 
-print("[IronSoul V61.11]", routeName)
+print("[K5Hub V1]", routeName)
 status(routeName .. " | starting")
 
 loadRaw(route)
