@@ -1,0 +1,11 @@
+--- a/systems/lobby.lua
++++ b/systems/lobby.lua
+@@ -1836,6 +1836,6 @@
+ local dailyLoginPending,
+     dailyLoginRows =
+         inspectDailyLogin()
+ 
+-spendSeasonTickets()
++-- Season lottery intentionally disabled: preserve SeasonTicket; never auto-spin.
+ 
+ local function writeRewardAudit()
