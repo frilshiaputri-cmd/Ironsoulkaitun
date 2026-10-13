@@ -114,11 +114,6 @@ task.spawn(function()
     local succeeded = 0
     for index, code in ipairs(Codes) do
         if not Player.Parent then break end
-        if getgenv().IronSoulLevelStopReached then
-            print("[IronSoul AutoRedeem] Stopped because level cap was reached")
-            break
-        end
-
         local ok, err = pcall(function()
             remote:FireServer({
                 event = "usecode",
