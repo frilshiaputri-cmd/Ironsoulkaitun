@@ -330,10 +330,8 @@ status(
 --========================================================--
 
 local function compatibilityQueue(payload)
-    if getgenv().IronSoulLevelStopReached then
-        status("LEVEL STOP | queue blocked")
-        return false
-    end
+    -- Permit the bootstrap to re-run after teleporting back to the lobby.
+    -- systems/lobby.lua separately blocks dungeon scheduling at the level cap.
     payload = tostring(payload or "")
 
     if type(RealQueue) == "function" then
