@@ -37,10 +37,10 @@ if LEVEL_STOP > 0 then
         local disconnected = false
 
         local function readAuthoritativeLevel()
-            local attr = tonumber(LocalPlayer:GetAttribute("LG_Level"))
-            if attr then return attr end
-
+            -- Prefer replicated player data first; LG_Level may be stale or
+            -- may belong to a UI-only value on some game versions.
             if not dataModule or not dataModule.Parent then
+                dataModule = nil
                 for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
                     if obj:IsA("ModuleScript") and obj.Name == "DataUtil" then
                         dataModule = obj
@@ -58,28 +58,40 @@ if LEVEL_STOP > 0 then
                         return util:GetPlayerData(LocalPlayer)
                     end)
                     if okData and type(data) == "table"
-                        and type(data.LevelData) == "table"
-                    then
-                        return tonumber(data.LevelData.Level)
+                        and type(data.LevelData) == "table" then
+                        local level = tonumber(data.LevelData.Level)
+                        if level then return level end
                     end
                 end
             end
-            return nil
+
+            return tonumber(LocalPlayer:GetAttribute("LG_Level"))
+        end
+
+        local function enforceLevelStop(level)
+            if disconnected then return end
+            disconnected = true
+            getgenv().IronSoulLevelStopReached = true
+            getgenv().IronSoulLevelStopLevel = level
+            -- Prevent queued/recovery paths from scheduling another run.
+            if type(getgenv().IronSoulConfig) == "table" then
+                getgenv().IronSoulConfig.FARM = "OFF"
+            end
+            pcall(function()
+                LocalPlayer:Kick(
+                    "IronSoul stopped: level limit reached (Lv"
+                    .. tostring(level) .. "/" .. tostring(LEVEL_STOP) .. ")."
+                )
+            end)
         end
 
         while not disconnected and LocalPlayer.Parent do
             local lv = readAuthoritativeLevel()
             if lv and lv >= LEVEL_STOP then
-                disconnected = true
-                pcall(function()
-                    LocalPlayer:Kick(
-                        "IronSoul stopped: level limit reached (Lv"
-                        .. tostring(lv) .. "/" .. tostring(LEVEL_STOP) .. ")."
-                    )
-                end)
+                enforceLevelStop(lv)
                 break
             end
-            task.wait(1)
+            task.wait(0.5)
         end
     end)
 end
@@ -304,6 +316,10 @@ status(
 --========================================================--
 
 local function compatibilityQueue(payload)
+    if getgenv().IronSoulLevelStopReached then
+        status("LEVEL STOP | queue blocked")
+        return false
+    end
     payload = tostring(payload or "")
 
     if type(RealQueue) == "function" then
@@ -407,6 +423,10 @@ local function shortError(err)
 end
 
 local function loadRaw(path)
+    if getgenv().IronSoulLevelStopReached then
+        status("LEVEL STOP | module load blocked")
+        return false, "level limit reached"
+    end
     status("Loading | " .. tostring(path))
 
     local ok, source =
@@ -477,6 +497,7 @@ getgenv().IronSoulConfig = getgenv().IronSoulConfig or {
     FARM = %q,
     TICKETS = %q,
     HEADLESS = %s,
+    LEVEL_STOP = %s,
 }
 loadstring(game:HttpGet(
     %q .. "?isv=61.11&t=" .. tostring(os.time())
@@ -486,6 +507,7 @@ loadstring(game:HttpGet(
         tostring(Config.FARM or "NEWBIE"),
         tostring(Config.TICKETS or "SMART"),
         tostring(Config.HEADLESS ~= false),
+        tostring(LEVEL_STOP),
         BASE .. "bootstrap_v61_11.lua"
     )
 
