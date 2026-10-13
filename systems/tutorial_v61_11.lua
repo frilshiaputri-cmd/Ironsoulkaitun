@@ -102,36 +102,13 @@ else
 end
 
 --========================================================--
--- STARTER SWORD
+-- STARTER WEAPON: PRESERVE THE PLAYER'S CHOICE
 --========================================================--
 
-local UnForgeUtil = req("UnForgeUtil")
-
-if UnForgeUtil
-    and LocalPlayer:GetAttribute(
-        "Equipment.GetDefaultWeapon"
-    ) ~= true
-    and type(UnForgeUtil.SelectDefaultWeapon) == "function"
-then
-    status("selecting starter Sword")
-
-    local ok, err = pcall(function()
-        UnForgeUtil:SelectDefaultWeapon(
-            LocalPlayer,
-            1
-        )
-    end)
-
-    if not ok then
-        status("Sword select failed | " .. tostring(err))
-    end
-elseif UnForgeUtil then
-    status("starter weapon already selected")
-else
-    status("weapon helper unavailable | still attempting Skip Tutorial")
-end
-
--- Give starter selection a moment to replicate server-side before skip.
+-- Do not call SelectDefaultWeapon here: the player must be able to choose
+-- Sword, Heavy Sword, or Staff from the game's own selection screen.
+-- The tutorial skip is attempted only after leaving the choice to the player.
+status("starter weapon choice left to player")
 task.wait(0.65)
 
 if waitTeleport(0.20) then
@@ -200,18 +177,10 @@ local function looksLikeSkip(button)
         local low = string.lower(text)
 
         if low == "skip"
-            or string.find(
-                low,
-                "skip tutorial",
-                1,
-                true
-            )
-            or string.find(
-                low,
-                "skiptutorial",
-                1,
-                true
-            )
+            or string.find(low, "skip tutorial", 1, true)
+            or string.find(low, "skiptutorial", 1, true)
+            or string.find(low, "lewati tutorial", 1, true)
+            or string.find(low, "lewati", 1, true)
         then
             return true
         end
