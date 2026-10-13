@@ -173,16 +173,44 @@ local function looksLikeSkip(button)
         end
     end
 
-    for _, text in ipairs(texts) do
-        local low = string.lower(text)
+    -- Match common translations of "Skip Tutorial". Roblox games may
+    -- localize the button text, so support several languages and common
+    -- button identifiers. This is broad multilingual matching, not a
+    -- guarantee for every language or custom localization.
+    local skipTerms = {
+        "skip", "skip tutorial", "skiptutorial",
+        "lewati", "lewati tutorial", "lewati tutorial",
+        "saltar", "omitir", "saltar tutorial",
+        "überspringen", "uberspringen", "tutorial überspringen",
+        "ignorer", "passer", "passer le tutoriel",
+        "salta", "saltare", "ignora",
+        "überspringe", "pular", "pular tutorial",
+        "bỏ qua", "bo qua", "bỏ qua hướng dẫn",
+        "跳过", "跳過", "スキップ", "チュートリアルをスキップ",
+        "건너뛰기", "튜토리얼 건너뛰기",
+        "пропустить", "пропустить обучение",
+        "تخطي", "تخطي البرنامج التعليمي",
+        "прескочи", "прескочить обучение",
+        "skippen", "sla over", "overslaan",
+        "spring over", "hoppa över", "ohita",
+        "пропусти", "zaobiđi", "preskoči",
+        "atlaist", "praleisti", "kihagyás",
+        "átugrás", "preskočiť", "preskočiť tutoriál",
+        "skippaa", "skip tutorial",
+    }
 
-        if low == "skip"
-            or string.find(low, "skip tutorial", 1, true)
-            or string.find(low, "skiptutorial", 1, true)
-            or string.find(low, "lewati tutorial", 1, true)
-            or string.find(low, "lewati", 1, true)
-        then
-            return true
+    for _, label in ipairs(texts) do
+        local low = string.lower(label)
+        -- Remove separators for common identifier-style names, e.g. SkipTutorial.
+        local compact = string.gsub(low, "[%s_%-]", "")
+
+        for _, term in ipairs(skipTerms) do
+            if low == term
+                or string.find(low, term, 1, true)
+                or string.find(compact, string.gsub(term, "[%s_%-]", ""), 1, true)
+            then
+                return true
+            end
         end
     end
 
