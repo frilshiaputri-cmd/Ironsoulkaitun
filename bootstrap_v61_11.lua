@@ -603,6 +603,10 @@ getgenv().IronSoulBaseURL = BASE
 getgenv().IronSoulQueueBootstrap = queueBootstrap
 getgenv().IronSoulLoadRaw = loadRaw
 
+-- Arm the next teleport on every map, not only when lobby.lua happens to run.
+-- Native executor queue is required for true automatic re-execution after teleport.
+queueBootstrap("arm next teleport from current place")
+
 local function looksLikeDungeon()
     local rs = game:GetService("ReplicatedStorage")
 
