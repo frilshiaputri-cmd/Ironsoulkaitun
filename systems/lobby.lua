@@ -168,10 +168,8 @@ do
         if type(getgenv().IronSoulConfig) == "table" then
             getgenv().IronSoulConfig.FARM = "OFF"
         end
-        status("LEVEL STOP | Lv" .. tostring(finalLevel) .. "/" .. tostring(cap) .. " | dungeon queue blocked")
-        pcall(function()
-            LocalPlayer:Kick("IronSoul stopped: level limit reached (Lv" .. tostring(finalLevel) .. "/" .. tostring(cap) .. ").")
-        end)
+        status("LEVEL CAP | Lv" .. tostring(finalLevel) .. "/" .. tostring(cap) .. " | stay in lobby; dungeon queue blocked")
+        -- Do not kick. Keep the player in the lobby and prevent dungeon scheduling.
         return false
     end
 end
