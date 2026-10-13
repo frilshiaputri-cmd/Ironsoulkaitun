@@ -324,7 +324,7 @@ local function status(text)
     if type(writefile) == "function" then
         pcall(
             writefile,
-            "IronSoul_MobileStatus_V61_11.txt",
+            "K5Hub_V1_Status.txt",
             table.concat({
                 "Version=K5Hub V1",
                 "Executor=" .. tostring(Caps.Executor),
@@ -346,6 +346,25 @@ local function status(text)
 end
 
 getgenv().IronSoulStatus = status
+
+-- Periodic diagnostic heartbeat: captures level/health and data readiness.
+task.spawn(function()
+    while LocalPlayer and LocalPlayer.Parent do
+        local character = LocalPlayer.Character
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        local health = humanoid and humanoid.Health or "n/a"
+        local maxHealth = humanoid and humanoid.MaxHealth or "n/a"
+        diag("DATA", string.format(
+            "heartbeat version=K5Hub V1 level=%s health=%s/%s world=%s queue=%s",
+            tostring(LocalPlayer:GetAttribute("LG_Level") or "n/a"),
+            tostring(health),
+            tostring(maxHealth),
+            tostring(workspace:GetAttribute("WorldName") or "n/a"),
+            tostring(Caps.Queue)
+        ))
+        task.wait(30)
+    end
+end)
 
 status(
     "Boot | "
