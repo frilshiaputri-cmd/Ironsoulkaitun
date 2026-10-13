@@ -46,6 +46,30 @@ local Codes = {
 }
 
 local REDEEM_DELAY = 16.1
+local LEVEL_STOP = tonumber((getgenv().IronSoulConfig or {}).LEVEL_STOP) or 30
+local LOBBY_PLACE_ID = 117533937949084
+
+local function readLevel()
+    local attr = tonumber(Player:GetAttribute("LG_Level"))
+    if attr then return attr end
+
+    for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+        if obj:IsA("ModuleScript") and obj.Name == "DataUtil" then
+            local ok, util = pcall(require, obj)
+            if ok and type(util) == "table" and type(util.GetPlayerData) == "function" then
+                local okData, data = pcall(function()
+                    return util:GetPlayerData(Player)
+                end)
+                if okData and type(data) == "table" and type(data.LevelData) == "table" then
+                    local level = tonumber(data.LevelData.Level)
+                    if level then return level end
+                end
+            end
+        end
+    end
+    return nil
+end
+
 local function getCodeRemote()
     local framework = ReplicatedStorage:FindFirstChild("Framework")
     local systems = framework and framework:FindFirstChild("Systems")
@@ -58,6 +82,20 @@ local function getCodeRemote()
 end
 
 task.spawn(function()
+    -- Wait until the player is at the level cap AND physically in the lobby.
+    while Player.Parent do
+        local level = readLevel()
+        if level and level >= LEVEL_STOP and game.PlaceId == LOBBY_PLACE_ID then
+            break
+        end
+        task.wait(2)
+    end
+
+    if not Player.Parent then
+        getgenv().IronSoulAutoRedeemStarted = nil
+        return
+    end
+
     local remote
     local deadline = os.clock() + 90
     repeat
@@ -72,7 +110,7 @@ task.spawn(function()
         return
     end
 
-    print("[IronSoul AutoRedeem] Starting " .. #Codes .. " codes (no UI)")
+    print("[IronSoul AutoRedeem] Level " .. tostring(readLevel()) .. " in lobby; starting " .. #Codes .. " codes (no UI)")
     local succeeded = 0
     for index, code in ipairs(Codes) do
         if not Player.Parent then break end
