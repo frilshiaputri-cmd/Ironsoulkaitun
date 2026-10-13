@@ -314,7 +314,8 @@ local function status(text)
         return
     end
 
-    diag((string.sub(text, 1, 5) == "ERROR" or string.sub(text, 1, 5) == "STUCK") and "ERROR" or "STATUS", text)\n    local line = "K5Hub V1 | " .. text
+    diag((string.sub(text, 1, 5) == "ERROR" or string.sub(text, 1, 5) == "STUCK") and "ERROR" or "STATUS", text)
+    local line = "K5Hub V1 | " .. text
     local label = ensureStatusGui()
 
     if label then
