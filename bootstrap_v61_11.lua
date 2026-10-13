@@ -24,21 +24,19 @@ local LocalPlayer = Players.LocalPlayer
 local TUTORIAL_PLACE_ID = 76701861705540
 local LOBBY_PLACE_ID = 117533937949084
 
--- HARD STOP: disconnect from the game once the authoritative player level
--- reaches the configured cap. This runs before any progression modules load.
--- Set IronSoulConfig.LEVEL_STOP = 0 to disable; default is level 30.
+-- LEVEL CAP: at/above the cap, stop farming and return to the lobby.
+-- Do not kick the player. Auto Redeem is gated separately to run only in lobby.
 local LEVEL_STOP = tonumber(Config.LEVEL_STOP)
 if LEVEL_STOP == nil then LEVEL_STOP = 30 end
 
 if LEVEL_STOP > 0 then
     task.spawn(function()
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local TeleportService = game:GetService("TeleportService")
         local dataModule
-        local disconnected = false
+        local handlingCap = false
 
         local function readAuthoritativeLevel()
-            -- Prefer replicated player data first; LG_Level may be stale or
-            -- may belong to a UI-only value on some game versions.
             if not dataModule or not dataModule.Parent then
                 dataModule = nil
                 for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
@@ -52,8 +50,7 @@ if LEVEL_STOP > 0 then
             if dataModule then
                 local ok, util = pcall(require, dataModule)
                 if ok and type(util) == "table"
-                    and type(util.GetPlayerData) == "function"
-                then
+                    and type(util.GetPlayerData) == "function" then
                     local okData, data = pcall(function()
                         return util:GetPlayerData(LocalPlayer)
                     end)
@@ -68,27 +65,30 @@ if LEVEL_STOP > 0 then
             return tonumber(LocalPlayer:GetAttribute("LG_Level"))
         end
 
-        local function enforceLevelStop(level)
-            if disconnected then return end
-            disconnected = true
-            getgenv().IronSoulLevelStopReached = true
-            getgenv().IronSoulLevelStopLevel = level
-            -- Prevent queued/recovery paths from scheduling another run.
-            if type(getgenv().IronSoulConfig) == "table" then
-                getgenv().IronSoulConfig.FARM = "OFF"
-            end
-            pcall(function()
-                LocalPlayer:Kick(
-                    "IronSoul stopped: level limit reached (Lv"
-                    .. tostring(level) .. "/" .. tostring(LEVEL_STOP) .. ")."
-                )
-            end)
-        end
+        while not handlingCap and LocalPlayer.Parent do
+            local level = readAuthoritativeLevel()
+            if level and level >= LEVEL_STOP then
+                handlingCap = true
+                getgenv().IronSoulLevelStopReached = true
+                getgenv().IronSoulLevelStopLevel = level
+                if type(getgenv().IronSoulConfig) == "table" then
+                    getgenv().IronSoulConfig.FARM = "OFF"
+                end
 
-        while not disconnected and LocalPlayer.Parent do
-            local lv = readAuthoritativeLevel()
-            if lv and lv >= LEVEL_STOP then
-                enforceLevelStop(lv)
+                if game.PlaceId ~= LOBBY_PLACE_ID then
+                    warn("[IronSoul] Level cap reached; returning to lobby instead of kicking.")
+                    local ok, err = pcall(function()
+                        TeleportService:Teleport(LOBBY_PLACE_ID, LocalPlayer)
+                    end)
+                    if not ok then
+                        warn("[IronSoul] Lobby teleport failed: " .. tostring(err))
+                        -- Keep the player in-game; never force-kick on failure.
+                        handlingCap = false
+                        task.wait(3)
+                    end
+                else
+                    print("[IronSoul] Level cap reached in lobby; farming disabled.")
+                end
                 break
             end
             task.wait(0.5)
