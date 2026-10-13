@@ -232,5 +232,6 @@ return getPatcher()({
         "systems/patches/lobby_v61_6.patch",
         "systems/patches/lobby_v61_7_reserve_best_ore.patch",
         "systems/patches/lobby_v61_8_forge_metrics.patch",
+        "systems/patches/lobby_v61_9_disable_season_spin.patch",
     },
 })
