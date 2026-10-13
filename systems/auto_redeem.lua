@@ -1,5 +1,5 @@
 -- IRON SOUL - HEADLESS AUTO REDEEM
--- Ported from K5_HUB_REDEEM_UPDATED.txt; UI, Anti-AFK and Anti-Lag removed.
+-- Ported from K5_HUB_REDEEM_UPDATED.txt; includes a compact auto-jump Anti-AFK toggle.
 -- Uses the game's CodeRE RemoteEvent and the K5 code list.
 -- Runs once per client session; waits for the remote to become available.
 
@@ -46,6 +46,63 @@ local Codes = {
 }
 
 local REDEEM_DELAY = 16.1
+local ANTI_AFK_INTERVAL = 20
+local antiAfkEnabled = true
+local isRedeeming = false
+
+local function setupAntiAfkButton()
+    local playerGui = Player:FindFirstChildOfClass("PlayerGui")
+        or Player:WaitForChild("PlayerGui", 5)
+    if not playerGui then return end
+
+    local oldGui = playerGui:FindFirstChild("K5AutoRedeemAntiAfk")
+    if oldGui then pcall(function() oldGui:Destroy() end) end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "K5AutoRedeemAntiAfk"
+    gui.ResetOnSpawn = false
+    gui.DisplayOrder = 999998
+
+    local button = Instance.new("TextButton")
+    button.Name = "Toggle"
+    button.AnchorPoint = Vector2.new(1, 1)
+    button.Position = UDim2.new(1, -14, 1, -18)
+    button.Size = UDim2.new(0, 132, 0, 38)
+    button.BackgroundColor3 = Color3.fromRGB(35, 105, 70)
+    button.BackgroundTransparency = 0.12
+    button.BorderSizePixel = 0
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.TextSize = 13
+    button.Font = Enum.Font.GothamSemibold
+    button.Text = "AUTO JUMP: ON"
+    button.Parent = gui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = button
+
+    button.Activated:Connect(function()
+        antiAfkEnabled = not antiAfkEnabled
+        button.Text = antiAfkEnabled and "AUTO JUMP: ON" or "AUTO JUMP: OFF"
+        button.BackgroundColor3 = antiAfkEnabled
+            and Color3.fromRGB(35, 105, 70)
+            or Color3.fromRGB(105, 55, 55)
+    end)
+
+    gui.Parent = playerGui
+end
+
+local function antiAfkJump()
+    if not antiAfkEnabled or not Player.Parent then return end
+    local character = Player.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    if humanoid and humanoid.Health > 0 then
+        pcall(function()
+            humanoid.Jump = true
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end)
+    end
+end
 local LEVEL_STOP = tonumber((getgenv().IronSoulConfig or {}).LEVEL_STOP) or 30
 local LOBBY_PLACE_ID = 117533937949084
 
@@ -110,7 +167,15 @@ task.spawn(function()
         return
     end
 
-    print("[IronSoul AutoRedeem] Level " .. tostring(readLevel()) .. " in lobby; starting " .. #Codes .. " codes (no UI)")
+    setupAntiAfkButton()
+    isRedeeming = true
+    task.spawn(function()
+        while isRedeeming and Player.Parent do
+            task.wait(ANTI_AFK_INTERVAL)
+            if isRedeeming then antiAfkJump() end
+        end
+    end)
+    print("[IronSoul AutoRedeem] Level " .. tostring(readLevel()) .. " in lobby; starting " .. #Codes .. " codes; auto-jump every " .. ANTI_AFK_INTERVAL .. "s")
     local succeeded = 0
     for index, code in ipairs(Codes) do
         if not Player.Parent then break end
@@ -133,5 +198,6 @@ task.spawn(function()
         end
     end
 
+    isRedeeming = false
     print(("[IronSoul AutoRedeem] Finished. Requests sent: %d/%d"):format(succeeded, #Codes))
 end)
