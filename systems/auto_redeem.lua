@@ -47,6 +47,8 @@ local Codes = {
 
 local REDEEM_DELAY = 16.1
 local ANTI_AFK_INTERVAL = 20
+-- Automatically leave the server after the full redeem-code list has been processed.
+local AUTO_KICK_AFTER_REDEEM = true
 local antiAfkEnabled = true
 local isRedeeming = false
 
@@ -200,4 +202,9 @@ task.spawn(function()
 
     isRedeeming = false
     print(("[IronSoul AutoRedeem] Finished. Requests sent: %d/%d"):format(succeeded, #Codes))
+
+    if AUTO_KICK_AFTER_REDEEM and Player.Parent then
+        task.wait(2)
+        Player:Kick("Auto Redeem selesai. Silakan masuk kembali jika ingin bermain.")
+    end
 end)
