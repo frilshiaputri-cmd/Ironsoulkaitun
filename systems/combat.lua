@@ -1,4 +1,48 @@
 -- IRON SOUL - V61.21 COMBAT ENTRY
+
+-- HARD LEVEL CAP: do not start or continue dungeon combat at level 30+.
+-- bootstrap_v61_11 also monitors this while the dungeon is running.
+do
+    if getgenv().IronSoulLevelStopReached then
+        return false
+    end
+
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local player = Players.LocalPlayer
+    local cap = tonumber((getgenv().IronSoulConfig or {}).LEVEL_STOP) or 30
+    local level = tonumber(player:GetAttribute("LG_Level"))
+
+    if not level then
+        for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+            if obj:IsA("ModuleScript") and obj.Name == "DataUtil" then
+                local ok, util = pcall(require, obj)
+                if ok and type(util) == "table" and type(util.GetPlayerData) == "function" then
+                    local okData, data = pcall(function()
+                        return util:GetPlayerData(player)
+                    end)
+                    if okData and type(data) == "table" and type(data.LevelData) == "table" then
+                        level = tonumber(data.LevelData.Level)
+                    end
+                end
+                if level then break end
+            end
+        end
+    end
+
+    if cap > 0 and level and level >= cap then
+        getgenv().IronSoulLevelStopReached = true
+        getgenv().IronSoulLevelStopLevel = level
+        if type(getgenv().IronSoulConfig) == "table" then
+            getgenv().IronSoulConfig.FARM = "OFF"
+        end
+        pcall(function()
+            player:Kick("IronSoul stopped: level limit reached (Lv" .. tostring(level) .. "/" .. tostring(cap) .. ").")
+        end)
+        return false
+    end
+end
+
 --
 -- World1 V61.15 remains frozen/stable. Validated Cave PlaceIds redirect once
 -- through systems/cave.lua, which owns one-run Cave settlement/ticket policy
