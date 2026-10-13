@@ -24,6 +24,66 @@ local LocalPlayer = Players.LocalPlayer
 local TUTORIAL_PLACE_ID = 76701861705540
 local LOBBY_PLACE_ID = 117533937949084
 
+-- HARD STOP: disconnect from the game once the authoritative player level
+-- reaches the configured cap. This runs before any progression modules load.
+-- Set IronSoulConfig.LEVEL_STOP = 0 to disable; default is level 30.
+local LEVEL_STOP = tonumber(Config.LEVEL_STOP)
+if LEVEL_STOP == nil then LEVEL_STOP = 30 end
+
+if LEVEL_STOP > 0 then
+    task.spawn(function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local dataModule
+        local disconnected = false
+
+        local function readAuthoritativeLevel()
+            local attr = tonumber(LocalPlayer:GetAttribute("LG_Level"))
+            if attr then return attr end
+
+            if not dataModule or not dataModule.Parent then
+                for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+                    if obj:IsA("ModuleScript") and obj.Name == "DataUtil" then
+                        dataModule = obj
+                        break
+                    end
+                end
+            end
+
+            if dataModule then
+                local ok, util = pcall(require, dataModule)
+                if ok and type(util) == "table"
+                    and type(util.GetPlayerData) == "function"
+                then
+                    local okData, data = pcall(function()
+                        return util:GetPlayerData(LocalPlayer)
+                    end)
+                    if okData and type(data) == "table"
+                        and type(data.LevelData) == "table"
+                    then
+                        return tonumber(data.LevelData.Level)
+                    end
+                end
+            end
+            return nil
+        end
+
+        while not disconnected and LocalPlayer.Parent do
+            local lv = readAuthoritativeLevel()
+            if lv and lv >= LEVEL_STOP then
+                disconnected = true
+                pcall(function()
+                    LocalPlayer:Kick(
+                        "IronSoul stopped: level limit reached (Lv"
+                        .. tostring(lv) .. "/" .. tostring(LEVEL_STOP) .. ")."
+                    )
+                end)
+                break
+            end
+            task.wait(1)
+        end
+    end)
+end
+
 -- Prevent duplicate queued copies in the same server/job.
 do
     local key = tostring(game.PlaceId) .. "|" .. tostring(game.JobId)
