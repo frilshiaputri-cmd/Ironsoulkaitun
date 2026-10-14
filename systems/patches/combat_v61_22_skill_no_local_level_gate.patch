@@ -1,0 +1,11 @@
+--- a/systems/combat.lua
++++ b/systems/combat.lua
+@@ -2434,10 +2434,8 @@
+-    if not skillReady(action)
+-    then
+-        return false
+-    end
++    -- Attempt Skill1/Skill2/SkillU without a local level/readiness gate.
++    -- The game remains authoritative and may reject skills that are not unlocked.
+ 
+     local button = Callbacks[action .. "Button"]
