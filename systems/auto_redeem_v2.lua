@@ -1,5 +1,5 @@
 -- K5-HUB IRONSOUL V2 - AUTO REDEEM
--- Keeps the existing tracker UI and code sequence; post-redeem kick is disabled.
+-- Keeps the existing tracker UI and code sequence; kick only after the full redeem list is sent.
 -- Ported from K5_HUB_REDEEM_UPDATED.txt; includes a compact auto-jump Anti-AFK toggle.
 -- Uses the game's CodeRE RemoteEvent and the K5 code list.
 -- Runs once per client session; waits for the remote to become available.
@@ -126,7 +126,7 @@ end
 local REDEEM_DELAY = 16.1
 local ANTI_AFK_INTERVAL = 20
 -- V2 keeps the session alive after processing codes.
-local AUTO_KICK_AFTER_REDEEM = false
+local AUTO_KICK_AFTER_REDEEM = true
 local isRedeeming = false
 
 local function antiAfkJump()
@@ -176,11 +176,26 @@ local function getCodeRemote()
 end
 
 task.spawn(function()
-    -- Wait until the player is at the level cap AND physically in the lobby.
+    -- At the level cap, stop farming and request a return to the lobby.
+    -- TeleportService may be restricted from client executors; if so, keep waiting
+    -- for the game's own return-to-lobby transition rather than redeeming in a dungeon.
+    local returnAttemptAt = 0
     while Player.Parent do
         local level = readLevel()
-        if level and level >= LEVEL_STOP and game.PlaceId == LOBBY_PLACE_ID then
+        local inLobby = game.PlaceId == LOBBY_PLACE_ID
+        if level and level >= LEVEL_STOP and inLobby then
             break
+        end
+        if level and level >= LEVEL_STOP and not inLobby and os.clock() >= returnAttemptAt then
+            returnAttemptAt = os.clock() + 12
+            local ok, err = pcall(function()
+                game:GetService("TeleportService"):Teleport(LOBBY_PLACE_ID)
+            end)
+            if ok then
+                print("[IronSoul AutoRedeem V2] Requested return to lobby.")
+            else
+                warn("[IronSoul AutoRedeem V2] Client teleport request unavailable; waiting for game lobby transition: " .. tostring(err))
+            end
         end
         task.wait(2)
     end
