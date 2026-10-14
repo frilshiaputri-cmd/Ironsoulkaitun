@@ -57,7 +57,6 @@ getgenv().K5HubDiagnostics = {
 }
 diag("INFO", "bootstrap entry started; version=K5Hub V1")
 
-local TUTORIAL_PLACE_ID = 76701861705540
 local LOBBY_PLACE_ID = 117533937949084
 
 -- AUTO REDEEM DISABLED: the auto_redeem.lua module is intentionally not loaded.
@@ -379,11 +378,6 @@ local function looksLikeDungeon()
         or workspace:FindFirstChild("EnemyNpc")
         or workspace:FindFirstChild("WorldEnemys")
     return hasRound and hasCombatWorld
-end
-
-while LocalPlayer.Parent and game.PlaceId == TUTORIAL_PLACE_ID do
-    status("Tutorial system disabled | waiting for tutorial to finish")
-    task.wait(1)
 end
 
 local route, routeName
