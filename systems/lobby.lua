@@ -212,12 +212,13 @@ loadstring(game:HttpGet(%q .. "?t=" .. tostring(os.time())))()
             )
 
             local ok, result = pcall(queue, payload)
-            if ok then
+            if ok and result ~= false then
                 status("Queued stable bootstrap | " .. tostring(reason or "next teleport"))
                 return true
             end
 
-            status("ERROR | stable queue failed | " .. tostring(result))
+            local detail = ok and "native queue unavailable" or tostring(result)
+            status("Manual continuation required | " .. detail .. " | run LOADER.lua after teleport")
             return false
         end
     end
