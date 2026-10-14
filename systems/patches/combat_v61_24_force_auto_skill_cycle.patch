@@ -61,6 +61,12 @@
      -- Attempt Skill1/Skill2/SkillU without a local level/readiness gate.
      -- The game remains authoritative and may reject skills that are not unlocked.
  
+@@ -4810,6 +4829,7 @@
+         -- Native skills if ready, then direct no-Mouse1 Sword combo.
++        castSkill("SkillU")
+         castSkill("Skill2")
+         castSkill("Skill1")
+
 @@ -5390,20 +5411,18 @@
 -        if Callbacks.Skill2
 -            and skillReady("Skill2")
@@ -89,8 +95,3 @@
              lastBasic =
                  os.clock()
          end
-@@ -4810,6 +4829,7 @@
-         -- Native skills if ready, then direct no-Mouse1 Sword combo.
-+        castSkill("SkillU")
-         castSkill("Skill2")
-         castSkill("Skill1")
