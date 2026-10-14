@@ -264,19 +264,24 @@ if Config.ANTI_AFK ~= false and LocalPlayer then
         local ok, VirtualUser = pcall(function()
             return game:GetService("VirtualUser")
         end)
+        local inputWorked = false
         if ok and VirtualUser then
-            pcall(function()
+            inputWorked = pcall(function()
                 local camera = workspace.CurrentCamera
                 VirtualUser:CaptureController()
                 VirtualUser:Button2Down(Vector2.new(0, 0), camera and camera.CFrame or CFrame.new())
                 task.wait(0.8)
                 VirtualUser:Button2Up(Vector2.new(0, 0), camera and camera.CFrame or CFrame.new())
             end)
-        else
+        end
+        if not inputWorked then
             local character = LocalPlayer.Character
             local humanoid = character and character:FindFirstChildOfClass("Humanoid")
             if humanoid and humanoid.Health > 0 then
-                pcall(function() humanoid.Jump = true end)
+                pcall(function()
+                    humanoid.Jump = true
+                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end)
             end
         end
         diag("INFO", "Anti-AFK idle signal handled")
