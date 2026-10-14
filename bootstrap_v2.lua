@@ -421,7 +421,7 @@ fn()
         tostring(config.HEADLESS ~= false),
         tostring(config.DEBUG_LOGS == true),
         tostring(tonumber(config.LEVEL_STOP) or 30),
-        BASE .. "bootstrap.lua"
+        BASE .. "bootstrap_v2.lua"
     )
 
     local ok, err = pcall(RealQueue, payload)
