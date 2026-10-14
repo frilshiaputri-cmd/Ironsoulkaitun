@@ -1,25 +1,5 @@
 --- a/systems/combat.lua
 +++ b/systems/combat.lua
-@@ -2260,6 +2260,13 @@
-     if action == "Skill2" then
-         return n == "skill2"
-             or string.find(
-                 n,
-                 "skill2",
-                 1,
-                 true
-             )
-             ~= nil
-     end
- 
-+    if action == "SkillU" then
-+        return n == "skillu"
-+            or string.find(n, "skillu", 1, true) ~= nil
-+            or string.find(n, "ultimate", 1, true) ~= nil
-+    end
-+
-     return false
- end
 @@ -2280,7 +2287,7 @@
          if obj:IsA("GuiButton") then
              for _, action in ipairs({
