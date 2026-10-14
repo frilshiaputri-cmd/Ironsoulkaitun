@@ -125,8 +125,8 @@ end
 
 local REDEEM_DELAY = 16.1
 local ANTI_AFK_INTERVAL = 20
--- Keep the player connected after processing the redeem-code list.
-local AUTO_KICK_AFTER_REDEEM = false
+-- Kick only after the complete redeem list has been sent.
+local AUTO_KICK_AFTER_REDEEM = true
 local isRedeeming = false
 
 local function antiAfkJump()
@@ -188,6 +188,11 @@ task.spawn(function()
         end
         if level and level >= LEVEL_STOP and not inLobby and os.clock() >= returnAttemptAt then
             returnAttemptAt = os.clock() + 12
+            -- Queue V2 bootstrap so the redeem module starts again after the lobby teleport.
+            local queueBootstrap = getgenv().IronSoulQueueBootstrap
+            if type(queueBootstrap) == "function" then
+                pcall(queueBootstrap, "level cap return to lobby")
+            end
             local ok, err = pcall(function()
                 game:GetService("TeleportService"):Teleport(LOBBY_PLACE_ID)
             end)
