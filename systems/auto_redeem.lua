@@ -59,26 +59,37 @@ local tracker = {ok=0, failed={}, code=nil, resolved=false}
 local function makeTracker()
  local pg = Player:WaitForChild("PlayerGui",15); if not pg then return end
  local gui = Instance.new("ScreenGui"); gui.Name="K5RedeemTracker"; gui.ResetOnSpawn=false; gui.DisplayOrder=999; gui.Parent=pg
- local frame=Instance.new("Frame"); frame.Size=UDim2.fromOffset(290,240); frame.Position=UDim2.new(1,-305,0.5,-120); frame.BackgroundColor3=Color3.fromRGB(25,20,38); frame.Parent=gui
- Instance.new("UICorner",frame).CornerRadius=UDim.new(0,8)
- local title=Instance.new("TextLabel"); title.Size=UDim2.new(1,0,0,28); title.BackgroundTransparency=1; title.Text="K5-HUB • REDEEM TRACKER"; title.TextColor3=Color3.fromRGB(210,165,255); title.Font=Enum.Font.GothamBold; title.TextSize=13; title.Parent=frame
- local stats=Instance.new("TextLabel"); stats.Name="Stats"; stats.Position=UDim2.fromOffset(8,30); stats.Size=UDim2.new(1,-16,0,28); stats.BackgroundTransparency=1; stats.TextColor3=Color3.new(1,1,1); stats.Font=Enum.Font.Gotham; stats.TextSize=11; stats.Parent=frame
- local status=Instance.new("TextLabel"); status.Name="Status"; status.Position=UDim2.fromOffset(8,57); status.Size=UDim2.new(1,-16,0,22); status.BackgroundTransparency=1; status.Text="Menunggu notifikasi..."; status.TextColor3=Color3.fromRGB(205,200,215); status.TextSize=10; status.Font=Enum.Font.Gotham; status.Parent=frame
- local scroll=Instance.new("ScrollingFrame"); scroll.Name="FailedList"; scroll.Position=UDim2.fromOffset(8,82); scroll.Size=UDim2.new(1,-16,1,-90); scroll.BackgroundColor3=Color3.fromRGB(38,30,48); scroll.BorderSizePixel=0; scroll.ScrollBarThickness=4; scroll.CanvasSize=UDim2.new(); scroll.Parent=frame
- local layout=Instance.new("UIListLayout"); layout.Padding=UDim.new(0,3); layout.Parent=scroll
+ -- Compact single-panel tracker: details stay collapsed so it does not cover the screen.
+ local frame=Instance.new("Frame"); frame.Name="Panel"; frame.Size=UDim2.fromOffset(205,76); frame.Position=UDim2.new(1,-213,0,90); frame.BackgroundColor3=Color3.fromRGB(25,20,38); frame.BorderSizePixel=0; frame.Parent=gui
+ Instance.new("UICorner",frame).CornerRadius=UDim.new(0,7)
+ local stroke=Instance.new("UIStroke"); stroke.Color=Color3.fromRGB(115,75,155); stroke.Thickness=1; stroke.Parent=frame
+ local title=Instance.new("TextLabel"); title.Size=UDim2.new(1,-48,0,22); title.Position=UDim2.fromOffset(7,2); title.BackgroundTransparency=1; title.Text="K5 • AUTO REDEEM"; title.TextColor3=Color3.fromRGB(210,165,255); title.Font=Enum.Font.GothamBold; title.TextSize=11; title.TextXAlignment=Enum.TextXAlignment.Left; title.Parent=frame
+ local detail=Instance.new("TextButton"); detail.Size=UDim2.fromOffset(34,19); detail.Position=UDim2.new(1,-39,0,3); detail.Text="INFO"; detail.TextSize=8; detail.Font=Enum.Font.GothamBold; detail.BackgroundColor3=Color3.fromRGB(72,48,95); detail.TextColor3=Color3.new(1,1,1); detail.Parent=frame
+ Instance.new("UICorner",detail).CornerRadius=UDim.new(0,5)
+ local stats=Instance.new("TextLabel"); stats.Name="Stats"; stats.Position=UDim2.fromOffset(7,25); stats.Size=UDim2.new(1,-14,0,17); stats.BackgroundTransparency=1; stats.TextColor3=Color3.new(1,1,1); stats.Font=Enum.Font.GothamSemibold; stats.TextSize=10; stats.TextXAlignment=Enum.TextXAlignment.Left; stats.Parent=frame
+ local status=Instance.new("TextLabel"); status.Name="Status"; status.Position=UDim2.fromOffset(7,44); status.Size=UDim2.new(1,-14,0,25); status.BackgroundTransparency=1; status.Text="Menunggu notifikasi..."; status.TextColor3=Color3.fromRGB(205,200,215); status.TextSize=9; status.TextWrapped=true; status.TextXAlignment=Enum.TextXAlignment.Left; status.Font=Enum.Font.Gotham; status.Parent=frame
+ local scroll=Instance.new("ScrollingFrame"); scroll.Name="FailedList"; scroll.Position=UDim2.fromOffset(7,76); scroll.Size=UDim2.new(1,-14,0,94); scroll.BackgroundColor3=Color3.fromRGB(38,30,48); scroll.BorderSizePixel=0; scroll.ScrollBarThickness=3; scroll.CanvasSize=UDim2.new(); scroll.Visible=false; scroll.Parent=frame
+ local layout=Instance.new("UIListLayout"); layout.Padding=UDim.new(0,2); layout.Parent=scroll
+ local expanded=false
+ detail.MouseButton1Click:Connect(function()
+  expanded=not expanded
+  scroll.Visible=expanded
+  detail.Text=expanded and "MIN" or "INFO"
+  frame.Size=expanded and UDim2.fromOffset(205,176) or UDim2.fromOffset(205,76)
+ end)
  local function refresh()
-  stats.Text=("Berhasil: %d | Gagal: %d"):format(tracker.ok,#tracker.failed)
+  stats.Text=("OK %d  |  Gagal %d"):format(tracker.ok,#tracker.failed)
   for _,v in ipairs(scroll:GetChildren()) do if v:IsA("Frame") then v:Destroy() end end
   for i,item in ipairs(tracker.failed) do
-   local row=Instance.new("Frame"); row.Size=UDim2.new(1,-5,0,25); row.BackgroundColor3=Color3.fromRGB(65,37,49); row.LayoutOrder=i; row.Parent=scroll
-   local lbl=Instance.new("TextLabel"); lbl.Size=UDim2.new(1,-55,1,0); lbl.BackgroundTransparency=1; lbl.Text=item.code.." • gagal"; lbl.TextColor3=Color3.new(1,0.85,0.85); lbl.TextSize=10; lbl.Font=Enum.Font.Gotham; lbl.Parent=row
-   local del=Instance.new("TextButton"); del.Size=UDim2.fromOffset(48,21); del.Position=UDim2.new(1,-50,0,2); del.Text="Hapus"; del.TextSize=9; del.Parent=row
+   local row=Instance.new("Frame"); row.Size=UDim2.new(1,-4,0,22); row.BackgroundColor3=Color3.fromRGB(65,37,49); row.LayoutOrder=i; row.Parent=scroll
+   local lbl=Instance.new("TextLabel"); lbl.Size=UDim2.new(1,-43,1,0); lbl.Position=UDim2.fromOffset(4,0); lbl.BackgroundTransparency=1; lbl.Text=item.code.." • gagal"; lbl.TextColor3=Color3.new(1,0.85,0.85); lbl.TextSize=9; lbl.Font=Enum.Font.Gotham; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.Parent=row
+   local del=Instance.new("TextButton"); del.Size=UDim2.fromOffset(36,18); del.Position=UDim2.new(1,-39,0,2); del.Text="Hapus"; del.TextSize=8; del.Parent=row
    del.MouseButton1Click:Connect(function() for n,x in ipairs(tracker.failed) do if x==item then table.remove(tracker.failed,n); break end end; refresh() end)
   end
-  scroll.CanvasSize=UDim2.fromOffset(0,layout.AbsoluteContentSize.Y+4)
+  scroll.CanvasSize=UDim2.fromOffset(0,layout.AbsoluteContentSize.Y+3)
  end
  tracker.refresh=refresh; tracker.status=function(s) status.Text=s end; refresh()
- layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() scroll.CanvasSize=UDim2.fromOffset(0,layout.AbsoluteContentSize.Y+4) end)
+ layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() scroll.CanvasSize=UDim2.fromOffset(0,layout.AbsoluteContentSize.Y+3) end)
 end
 local function result(kind, msg)
  if tracker.resolved or not tracker.code then return end
