@@ -1,0 +1,77 @@
+--- a/systems/combat.lua
++++ b/systems/combat.lua
+@@ -2296,6 +2296,10 @@
+                 if not Callbacks[action]
+                     and actionNameMatches(
+                         obj,
+                         action
+                     )
+                 then
++                    -- Keep the actual GUI button. Calling a captured
++                    -- connection function directly can bypass input state.
++                    Callbacks[action .. "Button"] = obj
++
+                     for _, signal in ipairs({
+                         obj.Activated,
+                         obj.MouseButton1Click,
+@@ -2430,6 +2434,44 @@
+ local function castSkill(action)
+     local fn =
+         Callbacks[action]
+ 
+-    if not fn
+-        or not skillReady(action)
++    if not skillReady(action)
+     then
+         return false
+     end
+ 
++    local button = Callbacks[action .. "Button"]
++    local keyName = action == "Skill1" and "Q"
++        or action == "Skill2" and "E"
++        or action == "SkillU" and "R"
++        or nil
++
+     -- Allow native skill visual briefly if desired; basic attack visuals
+     -- remain suppressed.
+     SkillCastingUntil =
+         os.clock() + 0.35
+ 
+-    local ok, err =
+-        pcall(fn)
++    local ok, err = false, "no GUI button or callback"
++
++    -- Preferred path from the recommendation script: reproduce the native
++    -- button press/release sequence rather than invoking conn.Function.
++    if button and button.Parent and type(firesignal) == "function" then
++        local downOk = pcall(firesignal, button.MouseButton1Down)
++        task.wait(0.02)
++        local upOk = pcall(firesignal, button.MouseButton1Up)
++        ok = downOk and upOk
++        if not ok then
++            err = "GUI button down/up failed"
++        end
++    end
++
++    -- Fallback to the game's keyboard binding when the GUI path is missing.
++    if not ok and keyName and type(Enum) == "table" then
++        local vimOk, vim = pcall(function()
++            return game:GetService("VirtualInputManager")
++        end)
++        if vimOk and vim then
++            ok, err = pcall(function()
++                vim:SendKeyEvent(true, Enum.KeyCode[keyName], false, game)
++                task.wait(0.03)
++                vim:SendKeyEvent(false, Enum.KeyCode[keyName], false, game)
++            end)
++        end
++    end
++
++    -- Last fallback: legacy native callback if available.
++    if not ok and type(fn) == "function" then
++        ok, err = pcall(fn)
++    end
++
+     if ok then
+         localLastCast[action] =
+             os.clock()
