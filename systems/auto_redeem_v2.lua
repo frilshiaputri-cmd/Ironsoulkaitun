@@ -125,8 +125,8 @@ end
 
 local REDEEM_DELAY = 16.1
 local ANTI_AFK_INTERVAL = 20
--- V2 keeps the session alive after processing codes.
-local AUTO_KICK_AFTER_REDEEM = true
+-- Keep the player connected after processing the redeem-code list.
+local AUTO_KICK_AFTER_REDEEM = false
 local isRedeeming = false
 
 local function antiAfkJump()
