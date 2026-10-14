@@ -1,0 +1,69 @@
+--- a/systems/combat.lua
++++ b/systems/combat.lua
+@@ -1,3 +1,12 @@
+     if action == "Skill2" then
+         return n == "skill2"
+             or string.find(
+                 n,
+                 "skill2",
+                 1,
+                 true
+             )
+             ~= nil
+     end
+ 
++    if action == "SkillU" then
++        return n == "skillu"
++            or string.find(n, "skillu", 1, true) ~= nil
++            or string.find(n, "ultimate", 1, true) ~= nil
++    end
++
+     return false
+ end
+@@ -1,5 +1,6 @@
+             for _, action in ipairs({
+                 "Skill1",
+                 "Skill2",
++                "SkillU",
+             }) do
+                 if not Callbacks[action]
+                     and actionNameMatches(
+@@ -1,7 +1,8 @@
+     log(
+         "Callbacks Skill1="
+             .. tostring(Callbacks.Skill1 ~= nil)
+             .. " Skill2="
+             .. tostring(Callbacks.Skill2 ~= nil)
++            .. " SkillU=" .. tostring(Callbacks.SkillU ~= nil)
+     )
+ end
+@@ -1,9 +1,11 @@
+ local localLastCast = {
+     Skill1 = -math.huge,
+     Skill2 = -math.huge,
++    SkillU = -math.huge,
+ }
+ 
+ local fallbackCD = {
+     Skill1 = 10,
+     Skill2 = 12,
++    SkillU = 35,
+ }
+@@ -1,9 +1,18 @@
+         if not getgenv().IronSoulCombatPosition then
+             trackElevationDamage(
+                 enemy
+             )
+         end
+ 
++        -- V61.23: automatically attempt the equipped ultimate while farming.
++        -- SkillU uses the game's own button/input route and cooldown fallback.
++        if Callbacks.SkillU and skillReady("SkillU") then
++            if castSkill("SkillU") then
++                task.wait(0.16)
++            end
++        end
++
+         if Callbacks.Skill2
+             and skillReady("Skill2")
+         then
