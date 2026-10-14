@@ -1,57 +1,37 @@
 --- a/systems/combat.lua
 +++ b/systems/combat.lua
-@@ -2280,7 +2287,7 @@
-         if obj:IsA("GuiButton") then
-             for _, action in ipairs({
-                 "Skill1",
-                 "Skill2",
-+                "SkillU",
-             }) do
-                 if not Callbacks[action]
-                     and actionNameMatches(
-                         obj,
-@@ -2355,6 +2362,7 @@
- local localLastCast = {
-     Skill1 = -math.huge,
-     Skill2 = -math.huge,
-+    SkillU = -math.huge,
- }
- 
-+local localAttemptCD = {
-+    Skill1 = 0.65,
-+    Skill2 = 0.85,
-+    SkillU = 2.50,
-+}
-+
- local fallbackCD = {
-     Skill1 = 10,
-     Skill2 = 12,
-@@ -2430,6 +2444,13 @@
- local function castSkill(action)
-     local fn =
-         Callbacks[action]
- 
-+    -- Local pacing prevents input flooding; it does not impose a player-level
-+    -- requirement. The game still decides whether an ability is unlocked.
-+    local minGap = localAttemptCD[action] or 0.8
-+    if os.clock() - (localLastCast[action] or -math.huge) < minGap then
-+        return false
-+    end
-+
-     -- Attempt Skill1/Skill2/SkillU without a local level/readiness gate.
-     -- The game remains authoritative and may reject skills that are not unlocked.
- 
-@@ -4810,6 +4829,7 @@
+@@ -4810,6 +4810,7 @@
          -- Native skills if ready, then direct no-Mouse1 Sword combo.
 +        castSkill("SkillU")
          castSkill("Skill2")
          castSkill("Skill1")
-
-@@ -5390,20 +5411,18 @@
--        if Callbacks.Skill2
+ 
+@@ -6098,42 +6098,31 @@
+         if AttackDriverMode == "UNTESTED" then
+             basicAttack(enemy)
+             lastBasic =
+                 os.clock()
+-
+-        -- V61.33: no enemy-HP or player-level gate; use SkillU whenever ready.
+-        elseif Callbacks.SkillU
+-            and skillReady("SkillU")
+-        then
+-            if castSkill("SkillU") then
+-                task.wait(0.18)
+-            end
+-
+-        elseif Callbacks.Skill2
 -            and skillReady("Skill2")
 -        then
 -            if castSkill("Skill2") then
+-                task.wait(0.16)
+-            end
+-
+-        -- V61.32: automatically cast Skill1 whenever its native callback is ready.
+-        elseif Callbacks.Skill1
+-            and skillReady("Skill1")
+-        then
+-            if castSkill("Skill1") then
 -                task.wait(0.16)
 -            end
 -        elseif Callbacks.Skill1
@@ -64,11 +44,19 @@
 -                - lastBasic
 -                >= CFG.BASIC_INTERVAL
 -        then
-+        -- V61.34: actively attempt all three skills during each combat cycle.
-+        -- castSkill uses the discovered GUI button, then Q/E/R input fallback.
-+        castSkill("SkillU")
-+        castSkill("Skill2")
-+        castSkill("Skill1")
++        end
++
++        -- V61.34: don't require a discovered GUI callback before trying skills.
++        -- castSkill falls back to Q/E/R input when a button callback is absent.
++        if skillReady("SkillU") then
++            castSkill("SkillU")
++        end
++        if skillReady("Skill2") then
++            castSkill("Skill2")
++        end
++        if skillReady("Skill1") then
++            castSkill("Skill1")
++        end
 +
 +        if os.clock() - lastBasic >= CFG.BASIC_INTERVAL then
              basicAttack(enemy)
