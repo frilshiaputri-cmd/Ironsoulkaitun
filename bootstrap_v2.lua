@@ -112,7 +112,6 @@ if LEVEL_STOP > 0 then
                 diag("INFO", "Level cap reached (" .. tostring(level) .. "); leaving server")
                 warn("[IronSoul] Level 30 reached; leaving the server.")
                 diag("INFO", "Level cap reached (" .. tostring(level) .. "); farming stopped; session kept alive for redeem/anti-AFK")
-                status("Level cap reached | farm stopped | session kept alive")
                 break
             end
             task.wait(0.5)
