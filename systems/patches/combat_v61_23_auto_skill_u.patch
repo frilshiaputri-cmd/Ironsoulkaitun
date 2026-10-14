@@ -1,20 +1,69 @@
 --- a/systems/combat.lua
 +++ b/systems/combat.lua
-@@ -1,9 +1,18 @@
-         if not getgenv().IronSoulCombatPosition then
+@@ -2256,13 +2256,22 @@
+     if action == "Skill2" then
+         return n == "skill2"
+             or string.find(
+                 n,
+                 "skill2",
+                 1,
+                 true
+             )
+             ~= nil
+     end
+ 
++    if action == "SkillU" then
++        return n == "skillu"
++            or string.find(n, "skillu", 1, true) ~= nil
++            or string.find(n, "ultimate", 1, true) ~= nil
++    end
++
+     return false
+ end
+@@ -2294,7 +2303,8 @@
+             for _, action in ipairs({
+                 "Skill1",
+                 "Skill2",
++                "SkillU",
+             }) do
+                 if not Callbacks[action]
+                     and actionNameMatches(
+@@ -2368,10 +2378,13 @@
+             .. tostring(
+                 Callbacks.Skill2 ~= nil
+             )
++            .. " SkillU="
++            .. tostring(
++                Callbacks.SkillU ~= nil
++            )
+     )
+ end
+@@ -2382,10 +2395,12 @@
+ local localLastCast = {
+     Skill1 = -math.huge,
+     Skill2 = -math.huge,
++    SkillU = -math.huge,
+ }
+ 
+ local fallbackCD = {
+     Skill1 = 10,
+     Skill2 = 12,
++    SkillU = 35,
+ }
+@@ -5434,6 +5449,15 @@
              trackElevationDamage(
                  enemy
              )
          end
  
 +        -- V61.23: automatically attempt the equipped ultimate while farming.
-+        -- The game's own button/input route and cooldown guard are retained.
++        -- No toggle or player-level gate; the game's native input/cooldown
++        -- behavior remains authoritative.
 +        if Callbacks.SkillU
 +            and skillReady("SkillU")
 +        then
-+            if castSkill("SkillU") then
-+                task.wait(0.16)
-+            end
++            castSkill("SkillU")
++            task.wait(0.16)
 +        end
 +
          if Callbacks.Skill2
