@@ -625,10 +625,17 @@ local route
 local routeName
 
 if game.PlaceId == TUTORIAL_PLACE_ID then
-    -- Explicit versioned tutorial: V61.10 created this mobile-safe path, but
-    -- the previous bootstrap accidentally kept routing to the old file.
-    route = "systems/tutorial_v61_10.lua"
-    routeName = "Tutorial"
+    -- Tutorial automation disabled: do not load systems/tutorial*.lua.
+    -- Move directly to the lobby so the normal lobby flow can take over.
+    status("Tutorial system disabled | returning to Lobby")
+    local TeleportService = game:GetService("TeleportService")
+    local ok, err = pcall(function()
+        TeleportService:Teleport(LOBBY_PLACE_ID, LocalPlayer)
+    end)
+    if not ok then
+        status("ERROR | tutorial disabled but Lobby teleport failed | " .. shortError(err))
+    end
+    return
 
 elseif game.PlaceId == LOBBY_PLACE_ID
     or workspace:GetAttribute("WorldName") == "Lobby"
@@ -646,9 +653,13 @@ else
         task.wait(0.5)
 
         if game.PlaceId == TUTORIAL_PLACE_ID then
-            route = "systems/tutorial_v61_10.lua"
-            routeName = "Tutorial"
-            break
+            -- Tutorial automation is disabled; return to Lobby instead.
+            local TeleportService = game:GetService("TeleportService")
+            pcall(function()
+                TeleportService:Teleport(LOBBY_PLACE_ID, LocalPlayer)
+            end)
+            status("Tutorial system disabled | returning to Lobby")
+            return
         elseif game.PlaceId == LOBBY_PLACE_ID
             or workspace:GetAttribute("WorldName") == "Lobby"
         then
