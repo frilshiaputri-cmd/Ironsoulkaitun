@@ -2,9 +2,9 @@
 +++ b/systems/combat.lua
 @@ -4810,6 +4810,7 @@
          -- Native skills if ready, then direct no-Mouse1 Sword combo.
-+        castSkill("SkillU")
-         castSkill("Skill2")
          castSkill("Skill1")
+         castSkill("Skill2")
++        castSkill("SkillU")
  
 @@ -6098,42 +6098,31 @@
          if AttackDriverMode == "UNTESTED" then
