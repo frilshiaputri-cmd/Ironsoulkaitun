@@ -164,7 +164,8 @@ getgenv().IronSoulLoadRaw = routedLoadRaw
 
 local ok, result = pcall(function()
     return getPatcher()({
-        repository = "MUshihara/ironsoulkaitun",
+        repository = "frilshiaputri-cmd/Ironsoulkaitun",
+        base_repository = "MUshihara/ironsoulkaitun",
         base_commit = "1d47f7f50ec8ecd92bca691b17d586d6bdecfa55",
         path = "systems/combat.lua",
         patch_paths = {
