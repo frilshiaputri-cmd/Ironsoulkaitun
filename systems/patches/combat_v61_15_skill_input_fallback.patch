@@ -54,7 +54,7 @@
 +    end
 +
 +    -- Fallback to the game's keyboard binding when the GUI path is missing.
-+    if not ok and keyName and type(Enum) == "table" then
++    if not ok and keyName and Enum ~= nil then
 +        local vimOk, vim = pcall(function()
 +            return game:GetService("VirtualInputManager")
 +        end)
