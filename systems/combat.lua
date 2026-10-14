@@ -182,6 +182,7 @@ local ok, result = pcall(function()
             "systems/patches/combat_v61_15_skill_input_fallback.patch",
             "systems/patches/combat_v61_22_skill_no_local_level_gate.patch",
             "systems/patches/combat_v61_23_auto_skill_u.patch",
+            "systems/patches/combat_v61_24_force_auto_skill_cycle.patch",
         },
     })
 end)
