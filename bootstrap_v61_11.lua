@@ -621,23 +621,17 @@ local function looksLikeDungeon()
     return hasRound and hasCombatWorld
 end
 
+-- Do not run tutorial automation or force a teleport. Wait until the game
+-- itself moves the player out of the tutorial, then route normally.
+while LocalPlayer.Parent and game.PlaceId == TUTORIAL_PLACE_ID do
+    status("Tutorial system disabled | waiting for tutorial to finish")
+    task.wait(1)
+end
+
 local route
 local routeName
 
-if game.PlaceId == TUTORIAL_PLACE_ID then
-    -- Tutorial automation disabled: do not load systems/tutorial*.lua.
-    -- Move directly to the lobby so the normal lobby flow can take over.
-    status("Tutorial system disabled | returning to Lobby")
-    local TeleportService = game:GetService("TeleportService")
-    local ok, err = pcall(function()
-        TeleportService:Teleport(LOBBY_PLACE_ID, LocalPlayer)
-    end)
-    if not ok then
-        status("ERROR | tutorial disabled but Lobby teleport failed | " .. shortError(err))
-    end
-    return
-
-elseif game.PlaceId == LOBBY_PLACE_ID
+if game.PlaceId == LOBBY_PLACE_ID
     or workspace:GetAttribute("WorldName") == "Lobby"
 then
     route = "systems/lobby.lua"
@@ -652,15 +646,7 @@ else
     for attempt = 1, 30 do
         task.wait(0.5)
 
-        if game.PlaceId == TUTORIAL_PLACE_ID then
-            -- Tutorial automation is disabled; return to Lobby instead.
-            local TeleportService = game:GetService("TeleportService")
-            pcall(function()
-                TeleportService:Teleport(LOBBY_PLACE_ID, LocalPlayer)
-            end)
-            status("Tutorial system disabled | returning to Lobby")
-            return
-        elseif game.PlaceId == LOBBY_PLACE_ID
+        if game.PlaceId == LOBBY_PLACE_ID
             or workspace:GetAttribute("WorldName") == "Lobby"
         then
             route = "systems/lobby.lua"
