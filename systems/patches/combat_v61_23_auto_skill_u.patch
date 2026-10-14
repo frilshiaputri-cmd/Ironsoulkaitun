@@ -28,13 +28,20 @@
              }) do
                  if not Callbacks[action]
                      and actionNameMatches(
-@@ -1,7 +1,8 @@
+@@ -1,10 +1,13 @@
      log(
          "Callbacks Skill1="
-             .. tostring(Callbacks.Skill1 ~= nil)
+             .. tostring(
+                 Callbacks.Skill1 ~= nil
+             )
              .. " Skill2="
-             .. tostring(Callbacks.Skill2 ~= nil)
-+            .. " SkillU=" .. tostring(Callbacks.SkillU ~= nil)
+             .. tostring(
+                 Callbacks.Skill2 ~= nil
+             )
++            .. " SkillU="
++            .. tostring(
++                Callbacks.SkillU ~= nil
++            )
      )
  end
 @@ -1,9 +1,11 @@
