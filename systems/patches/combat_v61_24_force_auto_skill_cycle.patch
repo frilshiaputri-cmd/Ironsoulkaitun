@@ -1,9 +1,9 @@
 --- a/systems/combat.lua
 +++ b/systems/combat.lua
-@@ -4810,6 +4810,7 @@
+@@ -5075,6 +5075,7 @@
          -- Native skills if ready, then direct no-Mouse1 Sword combo.
-         castSkill("Skill1")
          castSkill("Skill2")
+         castSkill("Skill1")
 +        castSkill("SkillU")
  
 @@ -6098,42 +6098,31 @@
