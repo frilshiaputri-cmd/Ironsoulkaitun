@@ -120,7 +120,7 @@ end
 local REDEEM_DELAY = 16.1
 local ANTI_AFK_INTERVAL = 20
 -- Automatically leave the server after the full redeem-code list has been processed.
-local AUTO_KICK_AFTER_REDEEM = false -- keep failed-code history visible
+local AUTO_KICK_AFTER_REDEEM = true -- disconnect locally after every code request has been processed
 local isRedeeming = false
 
 local function antiAfkJump()
