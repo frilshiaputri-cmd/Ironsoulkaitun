@@ -179,6 +179,7 @@ local ok, result = pcall(function()
             "systems/patches/combat_v61_14_world1_tween_open_gate.patch",
             "systems/patches/combat_v61_14_far_traversal_tween.patch",
             "systems/patches/combat_v61_14_3_fast_settlement.patch",
+            "systems/patches/combat_v61_15_skill_input_fallback.patch",
         },
     })
 end)
