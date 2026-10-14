@@ -4,6 +4,10 @@
 -- Uses the game's CodeRE RemoteEvent and the K5 code list.
 -- Runs once per client session; waits for the remote to become available.
 
+if getgenv().IronSoulAutoRedeemV2Completed then
+    print("[IronSoul AutoRedeem V2] Already completed; skipping duplicate run.")
+    return
+end
 if getgenv().IronSoulAutoRedeemV2Started then
     return
 end
@@ -60,6 +64,7 @@ local tracker = {ok=0, failed={}, code=nil, resolved=false}
 local function makeTracker()
  local pg = Player:WaitForChild("PlayerGui",15); if not pg then return end
  local gui = Instance.new("ScreenGui"); gui.Name="K5RedeemTracker"; gui.ResetOnSpawn=false; gui.DisplayOrder=999; gui.Parent=pg
+ tracker.gui = gui
  -- Compact single-panel tracker: details stay collapsed so it does not cover the screen.
  local frame=Instance.new("Frame"); frame.Name="Panel"; frame.Size=UDim2.fromOffset(205,76); frame.Position=UDim2.new(1,-213,0,90); frame.BackgroundColor3=Color3.fromRGB(25,20,38); frame.BorderSizePixel=0; frame.Parent=gui
  Instance.new("UICorner",frame).CornerRadius=UDim.new(0,7)
@@ -235,12 +240,25 @@ task.spawn(function()
     end
 
     isRedeeming = false
-    print(("[IronSoul AutoRedeem] Finished. Requests sent: %d/%d"):format(succeeded, #Codes))
+    -- Mark completion before cleanup so this module cannot restart and resend codes.
+    getgenv().IronSoulAutoRedeemV2Completed = true
+    getgenv().IronSoulAutoRedeemV2Stopped = true
+    tracker.resolved = true
+    tracker.code = nil
+    if tracker.status then tracker.status("SELESAI • Auto Redeem ditutup") end
+    print(("[IronSoul AutoRedeem V2] Finished: %d/%d requests sent."):format(succeeded, #Codes))
 
+    -- Close only the redeem tracker/module UI. Keep the main hub and its Anti-AFK alive.
+    task.wait(3)
+    if tracker.gui then
+        pcall(function() tracker.gui:Destroy() end)
+        tracker.gui = nil
+    end
+    getgenv().IronSoulAutoRedeemV2Started = false
     if AUTO_KICK_AFTER_REDEEM and Player.Parent then
         task.wait(2)
         Player:Kick("Auto Redeem selesai.")
     else
-        print("[IronSoul AutoRedeem V2] Session remains active; Anti-AFK stays enabled.")
+        print("[IronSoul AutoRedeem V2] Redeem module closed; main hub/session remains active.")
     end
 end)
