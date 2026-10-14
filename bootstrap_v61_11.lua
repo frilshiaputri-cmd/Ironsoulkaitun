@@ -288,8 +288,8 @@ local function compatibilityQueue(payload)
     if type(writefile) == "function" then
         pcall(writefile, "IronSoul_Reexecute_AfterTeleport_V61_11.lua", payload)
     end
-    status("Manual persistence | re-execute loader after teleport")
-    return true
+    status("Native teleport queue unavailable | manual re-execution required")
+    return false
 end
 pcall(function() rawset(getgenv(), "queue_on_teleport", compatibilityQueue) end)
 
@@ -357,14 +357,51 @@ local function loadRaw(path)
     return true, result
 end
 
--- MANUAL-ONLY MODE:
--- Never queue this bootstrap for automatic execution after teleport/map changes.
--- The user must execute LOADER.lua manually whenever they want to start the script.
+-- MANUAL START, SESSION CONTINUATION:
+-- This function is called only when an already-running, manually started
+-- session deliberately schedules a cross-place transition. It does not run
+-- the loader on initial join or merely because a map was opened.
 local function queueBootstrap(reason)
-    getgenv().IronSoulManualExecutionOnly = true
-    getgenv().IronSoulManualQueuedPayload = nil
-    status("Manual-only mode | auto execute on teleport disabled")
-    return false
+    if type(RealQueue) ~= "function" then
+        getgenv().IronSoulManualExecutionOnly = true
+        status("Teleport continuation unavailable | executor has no native queue; run LOADER.lua manually after teleport")
+        return false
+    end
+
+    local config = getgenv().IronSoulConfig or {}
+    local payload = string.format([[
+task.wait(1.35)
+getgenv().IronSoulConfig = {
+    FPS_CAP = %s,
+    FARM = %q,
+    TICKETS = %q,
+    HEADLESS = %s,
+    DEBUG_LOGS = %s,
+    LEVEL_STOP = %s,
+}
+local source = game:HttpGet(%q .. "?t=" .. tostring(os.time()))
+local fn, err = loadstring(source)
+assert(fn, err)
+fn()
+]],
+        tostring(tonumber(config.FPS_CAP) or 8),
+        tostring(config.FARM or "NEWBIE"),
+        tostring(config.TICKETS or "SMART"),
+        tostring(config.HEADLESS ~= false),
+        tostring(config.DEBUG_LOGS == true),
+        tostring(tonumber(config.LEVEL_STOP) or 30),
+        BASE .. "bootstrap.lua"
+    )
+
+    local ok, err = pcall(RealQueue, payload)
+    if not ok then
+        status("ERROR | teleport continuation queue failed | " .. tostring(err))
+        return false
+    end
+
+    getgenv().IronSoulManualExecutionOnly = false
+    status("Teleport continuation queued | " .. tostring(reason or "cross-place transition"))
+    return true
 end
 getgenv().IronSoulBaseURL = BASE
 getgenv().IronSoulQueueBootstrap = queueBootstrap
