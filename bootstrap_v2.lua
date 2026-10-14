@@ -62,7 +62,7 @@ local LOBBY_PLACE_ID = 117533937949084
 -- V2: auto redeem is enabled; module is loaded after the main route.
 getgenv().IronSoulAutoRedeemEnabled = Config.AUTO_REDEEM ~= false
 
--- At level 30, stop farming and leave the current server.
+-- At level 30, stop farming; Auto Redeem V2 handles returning to lobby and final exit.
 local LEVEL_STOP = tonumber(Config.LEVEL_STOP)
 if LEVEL_STOP == nil then LEVEL_STOP = 30 end
 
@@ -361,8 +361,8 @@ local function shortError(err)
 end
 
 local function loadRaw(path)
-    if getgenv().IronSoulLevelStopReached then
-        status("LEVEL STOP | module load blocked")
+    if getgenv().IronSoulLevelStopReached and path ~= "systems/auto_redeem_v2.lua" then
+        status("LEVEL STOP | farm module load blocked")
         return false, "level limit reached"
     end
     status("Loading | " .. tostring(path))
