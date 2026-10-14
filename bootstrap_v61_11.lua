@@ -358,37 +358,19 @@ local function loadRaw(path)
     return true, result
 end
 
+-- MANUAL-ONLY MODE:
+-- Never queue this bootstrap for automatic execution after teleport/map changes.
+-- The user must execute LOADER.lua manually whenever they want to start the script.
 local function queueBootstrap(reason)
-    local payload = string.format([[
-task.wait(1.35)
-getgenv().IronSoulConfig = getgenv().IronSoulConfig or {
-    FPS_CAP = %s,
-    FARM = %q,
-    TICKETS = %q,
-    HEADLESS = %s,
-    LEVEL_STOP = %s,
-}
-loadstring(game:HttpGet(%q .. "?isv=k5hub-v1&t=" .. tostring(os.time())))()
-]],
-        tostring(tonumber(Config.FPS_CAP) or 8),
-        tostring(Config.FARM or "NEWBIE"),
-        tostring(Config.TICKETS or "SMART"),
-        tostring(Config.HEADLESS ~= false),
-        tostring(LEVEL_STOP),
-        BASE .. "bootstrap_v61_11.lua"
-    )
-    local ok = compatibilityQueue(payload)
-    if ok and Caps.Queue then
-        status("Queued next teleport | " .. tostring(Caps.QueueName))
-    elseif ok then
-        status("Manual persistence | " .. tostring(reason) .. " | re-execute after teleport")
-    end
-    return ok
+    getgenv().IronSoulManualExecutionOnly = true
+    getgenv().IronSoulManualQueuedPayload = nil
+    status("Manual-only mode | auto execute on teleport disabled")
+    return false
 end
 getgenv().IronSoulBaseURL = BASE
 getgenv().IronSoulQueueBootstrap = queueBootstrap
 getgenv().IronSoulLoadRaw = loadRaw
-queueBootstrap("arm next teleport from current place")
+-- Intentionally do not queue on startup; run LOADER.lua manually each session/map.
 
 local function looksLikeDungeon()
     local rs = game:GetService("ReplicatedStorage")
