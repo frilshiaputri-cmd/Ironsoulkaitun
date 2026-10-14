@@ -1,6 +1,6 @@
 --- a/systems/combat.lua
 +++ b/systems/combat.lua
-@@ -2296,6 +2296,10 @@
+@@ -2296,9 +2296,13 @@
                  if not Callbacks[action]
                      and actionNameMatches(
                          obj,
@@ -14,7 +14,7 @@
                      for _, signal in ipairs({
                          obj.Activated,
                          obj.MouseButton1Click,
-@@ -2430,18 +2434,51 @@
+@@ -2430,19 +2434,52 @@
  local function castSkill(action)
      local fn =
          Callbacks[action]
