@@ -5,7 +5,7 @@
 getgenv().IronSoulConfig =
     getgenv().IronSoulConfig
     or {
-        FPS_CAP = 8,
+        FPS_CAP = 60,
         FARM = "NEWBIE",
         TICKETS = "SMART",
         HEADLESS = true,
@@ -364,7 +364,7 @@ local function shortError(err)
 end
 
 local function loadRaw(path)
-    if getgenv().IronSoulLevelStopReached and path ~= "systems/auto_redeem_v2.lua" then
+    if getgenv().IronSoulLevelStopReached and path ~= "systems/auto_redeem_v2.lua" and path ~= "systems/performance_booster.lua" then
         status("LEVEL STOP | farm module load blocked")
         return false, "level limit reached"
     end
@@ -423,7 +423,7 @@ local fn, err = loadstring(source)
 assert(fn, err)
 fn()
 ]],
-        tostring(tonumber(config.FPS_CAP) or 8),
+        tostring(tonumber(config.FPS_CAP) or 60),
         tostring(config.FARM or "NEWBIE"),
         tostring(config.TICKETS or "SMART"),
         tostring(config.HEADLESS ~= false),
@@ -445,6 +445,15 @@ end
 getgenv().IronSoulBaseURL = BASE
 getgenv().IronSoulQueueBootstrap = queueBootstrap
 getgenv().IronSoulLoadRaw = loadRaw
+
+-- Auto-start the graphics/FPS helper whenever this bootstrap is run on a map.
+-- This does not auto-run the full farm script on a fresh join without the loader.
+task.spawn(function()
+    local perfOk, perfErr = loadRaw("systems/performance_booster.lua")
+    if not perfOk then
+        diag("ERROR", "Performance Booster failed: " .. tostring(perfErr))
+    end
+end)
 -- Intentionally do not queue on startup; run LOADER.lua manually each session/map.
 
 local function looksLikeDungeon()
