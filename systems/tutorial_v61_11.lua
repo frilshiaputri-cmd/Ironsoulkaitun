@@ -164,57 +164,73 @@ end
 
 
 --========================================================--
--- AUTO-SELECT LEFT CARD (SENJATA RINGAN)
+-- AUTO-SELECT LEFT STARTER CARD
 --========================================================--
 
-local function isVisibleOnScreen(obj)
+local function uiVisible(obj)
     local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
-    local current = obj
-    while current and current ~= pg do
-        if current:IsA("GuiObject") and not current.Visible then return false end
-        if current:IsA("ScreenGui") and not current.Enabled then return false end
-        current = current.Parent
-    end
     if not pg or not obj:IsA("GuiObject") then return false end
+    local cur = obj
+    while cur and cur ~= pg do
+        if cur:IsA("GuiObject") and not cur.Visible then return false end
+        if cur:IsA("ScreenGui") and not cur.Enabled then return false end
+        cur = cur.Parent
+    end
     local p, s = obj.AbsolutePosition, obj.AbsoluteSize
     local cam = workspace.CurrentCamera
     local v = cam and cam.ViewportSize or Vector2.new(1000, 600)
-    return s.X > 0 and s.Y > 0 and p.X + s.X > 0 and p.Y + s.Y > 0
-        and p.X < v.X and p.Y < v.Y
+    return s.X > 0 and s.Y > 0 and p.X < v.X and p.X+s.X > 0 and p.Y < v.Y and p.Y+s.Y > 0
 end
 
-local function buttonText(button)
-    local out = { tostring(button.Name or "") }
-    if button:IsA("TextButton") then table.insert(out, tostring(button.Text or "")) end
-    for _, child in ipairs(button:GetDescendants()) do
-        if child:IsA("TextLabel") or child:IsA("TextButton") then
-            table.insert(out, tostring(child.Text or ""))
-        end
+local function ownText(obj)
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+        return string.lower(tostring(obj.Text or ""))
     end
-    return string.lower(table.concat(out, " "))
+    return string.lower(tostring(obj.Name or ""))
 end
 
-local function findLeftSelectButton(timeout)
-    local deadline = os.clock() + (timeout or 10)
+local function nearestButton(obj)
+    local cur = obj
+    local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+    while cur and cur ~= pg do
+        if cur:IsA("GuiButton") then return cur end
+        cur = cur.Parent
+    end
+end
+
+local function clickGuiObject(obj)
+    if not obj then return false, "NO_OBJECT" end
+    local button = obj:IsA("GuiButton") and obj or nearestButton(obj)
+    if button then
+        if fireSignal(button.Activated) then return true, "Activated" end
+        if fireSignal(button.MouseButton1Click) then return true, "MouseButton1Click" end
+    end
+    if obj:IsA("GuiObject") then
+        return virtualClick(obj), "VirtualClick"
+    end
+    return false, "NOT_GUI_OBJECT"
+end
+
+local function findLeftSelectTarget(timeout)
+    local deadline = os.clock() + (timeout or 12)
     while os.clock() < deadline do
         local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
         local candidates = {}
         if pg then
             for _, obj in ipairs(pg:GetDescendants()) do
-                if obj:IsA("GuiButton") and isVisibleOnScreen(obj) then
-                    local text = buttonText(obj)
-                    if string.find(text, "memilih", 1, true)
-                        or string.find(text, "select", 1, true)
-                        or string.find(text, "choose", 1, true)
-                    then
-                        -- The three yellow "Memilih" buttons are ordered left-to-right.
-                        table.insert(candidates, obj)
+                if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("GuiButton"))
+                    and uiVisible(obj)
+                then
+                    local t = ownText(obj)
+                    if string.find(t, "memilih", 1, true) then
+                        local target = nearestButton(obj) or obj
+                        if uiVisible(target) then table.insert(candidates, target) end
                     end
                 end
             end
         end
         if #candidates > 0 then
-            table.sort(candidates, function(a, b)
+            table.sort(candidates, function(a,b)
                 return a.AbsolutePosition.X < b.AbsolutePosition.X
             end)
             return candidates[1]
@@ -223,22 +239,15 @@ local function findLeftSelectButton(timeout)
     end
 end
 
-status("finding leftmost Memilih button (Senjata Ringan)")
-local swordButton = findLeftSelectButton(10)
-if swordButton then
-    local selected, method = fireSignal(swordButton.Activated), "Activated"
-    if not selected then
-        selected = fireSignal(swordButton.MouseButton1Click)
-        method = "MouseButton1Click"
-    end
-    if not selected then
-        selected = virtualClick(swordButton)
-        method = "VirtualClick"
-    end
-    status("leftmost weapon button clicked=" .. tostring(selected) .. " via=" .. method)
+status("searching visible Memilih labels")
+local weaponTarget = findLeftSelectTarget(12)
+if weaponTarget then
+    status("leftmost Memilih target found: " .. weaponTarget:GetFullName())
+    local ok, method = clickGuiObject(weaponTarget)
+    status("left weapon click attempt=" .. tostring(ok) .. " via=" .. tostring(method))
     task.wait(1)
 else
-    status("no visible Memilih button found; will continue to Skip Tutorial")
+    status("NO visible Memilih label found")
 end
 
 if waitTeleport(0.20) then return end
@@ -362,55 +371,46 @@ local function skipButtonLabels(button)
 end
 
 local function findSkipButton(timeout)
-    local deadline = os.clock() + (timeout or 4.5)
-
+    local deadline = os.clock() + (timeout or 8)
     while os.clock() < deadline do
         local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
-
+        local candidates = {}
+        local cam = workspace.CurrentCamera
+        local width = cam and cam.ViewportSize.X or 1000
         if pg then
-            local preferred, fallback, hidden = nil, nil, nil
-            local camera = workspace.CurrentCamera
-            local viewport = camera and camera.ViewportSize
-            local width = viewport and viewport.X or 1000
-
             for _, obj in ipairs(pg:GetDescendants()) do
-                if obj:IsA("GuiButton") and looksLikeSkip(obj) then
-                    local labels = skipButtonLabels(obj)
-                    local text = string.lower(table.concat(labels, " "))
-                    local compact = string.gsub(text, "[%s_%-]", "")
-                    local exactPhrase =
-                        string.find(text, "lewati tutorial", 1, true) ~= nil
-                        or string.find(compact, "lewatitutorial", 1, true) ~= nil
-                        or string.find(text, "skip tutorial", 1, true) ~= nil
-                        or string.find(compact, "skiptutorial", 1, true) ~= nil
-
-                    if effectivelyVisible(obj) then
-                        local pos = obj.AbsolutePosition
-                        local size = obj.AbsoluteSize
-                        local topRight = pos.X > width * 0.55 and pos.Y < 180
-
-                        if exactPhrase and topRight then
-                            return obj
-                        elseif exactPhrase and not preferred then
-                            preferred = obj
-                        elseif not fallback then
-                            fallback = obj
+                if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("GuiButton"))
+                    and uiVisible(obj)
+                then
+                    local t = ownText(obj)
+                    local compact = string.gsub(t, "[%s_%-]", "")
+                    local exact = string.find(t, "lewati tutorial", 1, true)
+                        or string.find(compact, "lewatitutorial", 1, true)
+                        or string.find(t, "skip tutorial", 1, true)
+                        or string.find(compact, "skiptutorial", 1, true)
+                    if exact then
+                        local target = nearestButton(obj) or obj
+                        if uiVisible(target) then
+                            local p = target.AbsolutePosition
+                            table.insert(candidates, {
+                                target = target,
+                                topRight = p.X > width * 0.5 and p.Y < 220
+                            })
                         end
-                    else
-                        hidden = hidden or obj
                     end
                 end
             end
-
-            if preferred then return preferred end
-            if fallback then return fallback end
-            if hidden then return hidden end
         end
-
-        task.wait(0.12)
+        if #candidates > 0 then
+            table.sort(candidates, function(a,b)
+                if a.topRight ~= b.topRight then return a.topRight end
+                return a.target.AbsolutePosition.Y < b.target.AbsolutePosition.Y
+            end)
+            return candidates[1].target
+        end
+        task.wait(0.15)
     end
 end
-
 
 local function activateSkip(button)
     if not button then
