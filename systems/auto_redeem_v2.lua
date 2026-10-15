@@ -42,13 +42,15 @@ local function readLevel()
 end
 
 while Player.Parent and not kicked do
-    local level = readLevel()
-    if level and level >= LEVEL_STOP then
+    if getgenv().IronSoulMasterEnabled ~= false then
+        local level = readLevel()
+        if level and level >= LEVEL_STOP then
         kicked = true
         print(("[IronSoul] Level %d reached (limit %d). Leaving server; Auto Redeem is disabled."):format(level, LEVEL_STOP))
         task.wait(1)
         Player:Kick("Level 30 tercapai. Keluar dari server.")
-        break
+            break
+        end
     end
     task.wait(CHECK_INTERVAL)
 end
