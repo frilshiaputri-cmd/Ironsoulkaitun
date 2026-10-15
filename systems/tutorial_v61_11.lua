@@ -101,6 +101,65 @@ else
     status("no native teleport queue | re-execute loader once in Lobby")
 end
 
+fireSignal = function(signal)
+    if not signal then
+        return false
+    end
+
+    if type(firesignal) == "function"
+        and pcall(firesignal, signal)
+    then
+        return true
+    end
+
+    if type(getconnections) == "function" then
+        local ok, connections = pcall(getconnections, signal)
+
+        if ok and type(connections) == "table" then
+            for _, conn in ipairs(connections) do
+                if type(conn.Function) == "function"
+                    and pcall(conn.Function)
+                then
+                    return true
+                end
+
+                if type(conn.Fire) == "function"
+                    and pcall(conn.Fire, conn)
+                then
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+
+virtualClick = function(button)
+    if not button then
+        return false
+    end
+
+    local pos = button.AbsolutePosition
+    local size = button.AbsoluteSize
+    local x = math.floor(pos.X + size.X * 0.5)
+    local y = math.floor(pos.Y + size.Y * 0.5)
+
+    return pcall(function()
+        VirtualInputManager:SendMouseMoveEvent(x, y, game)
+        task.wait(0.04)
+        VirtualInputManager:SendMouseButtonEvent(
+            x, y, 0, true, game, 0
+        )
+        task.wait(0.05)
+        VirtualInputManager:SendMouseButtonEvent(
+            x, y, 0, false, game, 0
+        )
+    end)
+end
+
+
 local fireSignal, virtualClick
 
 --========================================================--
@@ -381,62 +440,6 @@ local function findSkipButton(timeout)
     end
 end
 
-fireSignal = function(signal)
-    if not signal then
-        return false
-    end
-
-    if type(firesignal) == "function"
-        and pcall(firesignal, signal)
-    then
-        return true
-    end
-
-    if type(getconnections) == "function" then
-        local ok, connections = pcall(getconnections, signal)
-
-        if ok and type(connections) == "table" then
-            for _, conn in ipairs(connections) do
-                if type(conn.Function) == "function"
-                    and pcall(conn.Function)
-                then
-                    return true
-                end
-
-                if type(conn.Fire) == "function"
-                    and pcall(conn.Fire, conn)
-                then
-                    return true
-                end
-            end
-        end
-    end
-
-    return false
-end
-
-virtualClick = function(button)
-    if not button then
-        return false
-    end
-
-    local pos = button.AbsolutePosition
-    local size = button.AbsoluteSize
-    local x = math.floor(pos.X + size.X * 0.5)
-    local y = math.floor(pos.Y + size.Y * 0.5)
-
-    return pcall(function()
-        VirtualInputManager:SendMouseMoveEvent(x, y, game)
-        task.wait(0.04)
-        VirtualInputManager:SendMouseButtonEvent(
-            x, y, 0, true, game, 0
-        )
-        task.wait(0.05)
-        VirtualInputManager:SendMouseButtonEvent(
-            x, y, 0, false, game, 0
-        )
-    end)
-end
 
 local function activateSkip(button)
     if not button then
