@@ -109,9 +109,12 @@ if LEVEL_STOP > 0 then
                 if type(getgenv().IronSoulConfig) == "table" then
                     getgenv().IronSoulConfig.FARM = "OFF"
                 end
-                diag("INFO", "Level cap reached (" .. tostring(level) .. "); leaving server")
-                warn("[IronSoul] Level 30 reached; leaving the server.")
-                diag("INFO", "Level cap reached (" .. tostring(level) .. "); farming stopped; session kept alive for redeem/anti-AFK")
+                diag("INFO", "Level cap reached (" .. tostring(level) .. "); Auto Redeem disabled; kicking player")
+                warn("[IronSoul] Level 30 reached; Auto Redeem is disabled. Leaving server.")
+                task.wait(1)
+                pcall(function()
+                    LocalPlayer:Kick("Level 30 tercapai. Auto Redeem nonaktif; keluar dari server.")
+                end)
                 break
             end
             task.wait(0.5)
