@@ -101,6 +101,8 @@ else
     status("no native teleport queue | re-execute loader once in Lobby")
 end
 
+local fireSignal, virtualClick
+
 --========================================================--
 -- AUTO-SELECT STARTER WEAPON: SWORD
 --========================================================--
@@ -313,6 +315,22 @@ local function looksLikeSkip(button)
     return false
 end
 
+local function skipButtonLabels(button)
+    local labels = { tostring(button.Name or "") }
+
+    if button:IsA("TextButton") then
+        table.insert(labels, tostring(button.Text or ""))
+    end
+
+    for _, child in ipairs(button:GetDescendants()) do
+        if child:IsA("TextLabel") or child:IsA("TextButton") then
+            table.insert(labels, tostring(child.Text or ""))
+        end
+    end
+
+    return labels
+end
+
 local function findSkipButton(timeout)
     local deadline = os.clock() + (timeout or 4.5)
 
@@ -320,27 +338,50 @@ local function findSkipButton(timeout)
         local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
 
         if pg then
-            local hidden = nil
+            local preferred, fallback, hidden = nil, nil, nil
+            local camera = workspace.CurrentCamera
+            local viewport = camera and camera.ViewportSize
+            local width = viewport and viewport.X or 1000
 
             for _, obj in ipairs(pg:GetDescendants()) do
-                if looksLikeSkip(obj) then
+                if obj:IsA("GuiButton") and looksLikeSkip(obj) then
+                    local labels = skipButtonLabels(obj)
+                    local text = string.lower(table.concat(labels, " "))
+                    local compact = string.gsub(text, "[%s_%-]", "")
+                    local exactPhrase =
+                        string.find(text, "lewati tutorial", 1, true) ~= nil
+                        or string.find(compact, "lewatitutorial", 1, true) ~= nil
+                        or string.find(text, "skip tutorial", 1, true) ~= nil
+                        or string.find(compact, "skiptutorial", 1, true) ~= nil
+
                     if effectivelyVisible(obj) then
-                        return obj
+                        local pos = obj.AbsolutePosition
+                        local size = obj.AbsoluteSize
+                        local topRight = pos.X > width * 0.55 and pos.Y < 180
+
+                        if exactPhrase and topRight then
+                            return obj
+                        elseif exactPhrase and not preferred then
+                            preferred = obj
+                        elseif not fallback then
+                            fallback = obj
+                        end
+                    else
+                        hidden = hidden or obj
                     end
-                    hidden = hidden or obj
                 end
             end
 
-            if hidden then
-                return hidden
-            end
+            if preferred then return preferred end
+            if fallback then return fallback end
+            if hidden then return hidden end
         end
 
         task.wait(0.12)
     end
 end
 
-local function fireSignal(signal)
+fireSignal = function(signal)
     if not signal then
         return false
     end
@@ -374,7 +415,7 @@ local function fireSignal(signal)
     return false
 end
 
-local function virtualClick(button)
+virtualClick = function(button)
     if not button then
         return false
     end
