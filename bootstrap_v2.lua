@@ -266,7 +266,10 @@ local function setMasterEnabled(value)
     local cfg = env.IronSoulConfig
     if type(cfg) == "table" then
         if value == true then
-            cfg.FARM = env.IronSoulPreviousFarmMode or "NEWBIE"
+            if env.IronSoulPreviousFarmMode ~= nil then
+                cfg.FARM = env.IronSoulPreviousFarmMode
+                env.IronSoulPreviousFarmMode = nil
+            end
         else
             if cfg.FARM ~= "OFF" then env.IronSoulPreviousFarmMode = cfg.FARM end
             cfg.FARM = "OFF"
