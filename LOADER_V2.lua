@@ -1,7 +1,7 @@
 -- K5-HUB IRONSOUL V2 - PUBLIC LOADER
 -- Manual start only. Does not auto-run on initial server/map entry.
 getgenv().IronSoulConfig = {
-    FPS_CAP = 8,
+    FPS_CAP = 60,
     FARM = "NEWBIE",
     TICKETS = "SMART",
     HEADLESS = true,
