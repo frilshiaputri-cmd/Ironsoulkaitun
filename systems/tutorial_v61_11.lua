@@ -14,6 +14,9 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local LocalPlayer = Players.LocalPlayer
 local LOBBY_PLACE_ID = 117533937949084
 
+-- Forward declarations: helper functions are assigned below before use.
+local fireSignal, virtualClick
+
 local function status(text)
     local fn = getgenv().IronSoulStatus
     if type(fn) == "function" then
@@ -159,8 +162,6 @@ virtualClick = function(button)
     end)
 end
 
-
-local fireSignal, virtualClick
 
 --========================================================--
 -- AUTO-SELECT STARTER WEAPON: SWORD
