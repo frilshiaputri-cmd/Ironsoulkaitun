@@ -164,132 +164,84 @@ end
 
 
 --========================================================--
--- AUTO-SELECT LEFT STARTER WEAPON CARD: SENJATA RINGAN
+-- AUTO-SELECT LEFT CARD (SENJATA RINGAN)
 --========================================================--
 
--- On the game's starter screen the left card is labeled "Senjata Ringan"
--- and describes "Kecepatan Serangan/Mobilitas". The button itself says
--- "Memilih", so do not search for a button literally named "Sword".
-local function swordButtonVisible(obj)
+local function isVisibleOnScreen(obj)
+    local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
     local current = obj
-
-    while current and current ~= LocalPlayer do
-        if current:IsA("GuiObject") and current.Visible == false then
-            return false
-        end
-        if current:IsA("ScreenGui") and current.Enabled == false then
-            return false
-        end
-        if current == LocalPlayer:FindFirstChildOfClass("PlayerGui") then
-            break
-        end
+    while current and current ~= pg do
+        if current:IsA("GuiObject") and not current.Visible then return false end
+        if current:IsA("ScreenGui") and not current.Enabled then return false end
         current = current.Parent
     end
-
-    return true
+    if not pg or not obj:IsA("GuiObject") then return false end
+    local p, s = obj.AbsolutePosition, obj.AbsoluteSize
+    local cam = workspace.CurrentCamera
+    local v = cam and cam.ViewportSize or Vector2.new(1000, 600)
+    return s.X > 0 and s.Y > 0 and p.X + s.X > 0 and p.Y + s.Y > 0
+        and p.X < v.X and p.Y < v.Y
 end
 
-local function textOf(obj)
-    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-        return tostring(obj.Text or "")
-    end
-    return tostring(obj.Name or "")
-end
-
-local function cardContainsLightSword(card)
-    local labels = { string.lower(textOf(card)) }
-
-    for _, child in ipairs(card:GetDescendants()) do
+local function buttonText(button)
+    local out = { tostring(button.Name or "") }
+    if button:IsA("TextButton") then table.insert(out, tostring(button.Text or "")) end
+    for _, child in ipairs(button:GetDescendants()) do
         if child:IsA("TextLabel") or child:IsA("TextButton") then
-            table.insert(labels, string.lower(tostring(child.Text or "")))
+            table.insert(out, tostring(child.Text or ""))
         end
     end
-
-    for _, label in ipairs(labels) do
-        local normalized = string.gsub(label, "%s+", "")
-        if string.find(label, "senjata ringan", 1, true)
-            or string.find(normalized, "senjateringan", 1, true)
-            or string.find(label, "kecepatan serangan", 1, true)
-            or string.find(label, "mobility", 1, true)
-        then
-            return true
-        end
-    end
-
-    return false
+    return string.lower(table.concat(out, " "))
 end
 
-local function findLightSwordSelectButton(timeout)
-    local deadline = os.clock() + (timeout or 8)
-
+local function findLeftSelectButton(timeout)
+    local deadline = os.clock() + (timeout or 10)
     while os.clock() < deadline do
         local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
-
+        local candidates = {}
         if pg then
-            -- Find the card by its displayed title/description, then click
-            -- the "Memilih" button contained inside that same card.
-            for _, label in ipairs(pg:GetDescendants()) do
-                if (label:IsA("TextLabel") or label:IsA("TextButton"))
-                    and string.find(string.lower(textOf(label)), "senjata ringan", 1, true)
-                then
-                    local ancestor = label.Parent
-                    while ancestor and ancestor ~= pg do
-                        if ancestor:IsA("GuiObject") and swordButtonVisible(ancestor)
-                            and cardContainsLightSword(ancestor)
-                        then
-                            for _, item in ipairs(ancestor:GetDescendants()) do
-                                if item:IsA("GuiButton") and swordButtonVisible(item) then
-                                    local buttonText = string.lower(textOf(item))
-                                    for _, child in ipairs(item:GetDescendants()) do
-                                        if child:IsA("TextLabel") or child:IsA("TextButton") then
-                                            buttonText = buttonText .. " " .. string.lower(tostring(child.Text or ""))
-                                        end
-                                    end
-
-                                    if string.find(buttonText, "memilih", 1, true)
-                                        or string.find(buttonText, "select", 1, true)
-                                        or string.find(buttonText, "choose", 1, true)
-                                    then
-                                        return item
-                                    end
-                                end
-                            end
-                        end
-                        ancestor = ancestor.Parent
+            for _, obj in ipairs(pg:GetDescendants()) do
+                if obj:IsA("GuiButton") and isVisibleOnScreen(obj) then
+                    local text = buttonText(obj)
+                    if string.find(text, "memilih", 1, true)
+                        or string.find(text, "select", 1, true)
+                        or string.find(text, "choose", 1, true)
+                    then
+                        -- The three yellow "Memilih" buttons are ordered left-to-right.
+                        table.insert(candidates, obj)
                     end
                 end
             end
         end
-
-        task.wait(0.12)
+        if #candidates > 0 then
+            table.sort(candidates, function(a, b)
+                return a.AbsolutePosition.X < b.AbsolutePosition.X
+            end)
+            return candidates[1]
+        end
+        task.wait(0.15)
     end
 end
 
-status("looking for left Senjata Ringan card")
-local swordButton = findLightSwordSelectButton(8)
-
+status("finding leftmost Memilih button (Senjata Ringan)")
+local swordButton = findLeftSelectButton(10)
 if swordButton then
     local selected, method = fireSignal(swordButton.Activated), "Activated"
-
     if not selected then
         selected = fireSignal(swordButton.MouseButton1Click)
         method = "MouseButton1Click"
     end
-
     if not selected then
         selected = virtualClick(swordButton)
         method = "VirtualClick"
     end
-
-    status("left Senjata Ringan selected=" .. tostring(selected) .. " via=" .. method)
-    task.wait(0.65)
+    status("leftmost weapon button clicked=" .. tostring(selected) .. " via=" .. method)
+    task.wait(1)
 else
-    status("left Senjata Ringan card/button not found | continuing to Skip Tutorial")
+    status("no visible Memilih button found; will continue to Skip Tutorial")
 end
 
-if waitTeleport(0.20) then
-    return
-end
+if waitTeleport(0.20) then return end
 
 --========================================================--
 -- SKIP TUTORIAL
