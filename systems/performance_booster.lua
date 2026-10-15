@@ -65,11 +65,11 @@ local function optimizeObject(obj)
 end
 
 local function optimizeAll()
-    pcall(function() Lighting.GlobalShadows = false end)
-    pcall(function() Lighting.FogEnd = 1000000 end)
+    setProp(Lighting, "GlobalShadows", false)
+    setProp(Lighting, "FogEnd", 1000000)
     pcall(function()
         local settings = UserSettings():GetService("UserGameSettings")
-        settings.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+        setProp(settings, "SavedQualityLevel", Enum.SavedQualitySetting.QualityLevel1)
     end)
     for _, obj in ipairs(Lighting:GetDescendants()) do optimizeObject(obj) end
     for _, obj in ipairs(Workspace:GetDescendants()) do optimizeObject(obj) end
