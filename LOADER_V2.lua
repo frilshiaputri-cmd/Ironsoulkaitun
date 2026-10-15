@@ -7,7 +7,7 @@ getgenv().IronSoulConfig = {
     HEADLESS = true,
     DEBUG_LOGS = false,
     LEVEL_STOP = 30,
-    AUTO_REDEEM = true,
+    AUTO_REDEEM = false,
     ANTI_AFK = true,
 }
 
