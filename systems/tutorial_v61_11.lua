@@ -108,6 +108,25 @@ end
 -- Select only the plain "Sword" option. Do not match "Heavy Sword".
 -- The game may put the visible label on a child TextLabel, so inspect
 -- the button and its descendants.
+local function swordButtonVisible(obj)
+    local current = obj
+
+    while current and current ~= LocalPlayer do
+        if current:IsA("GuiObject") and current.Visible == false then
+            return false
+        end
+        if current:IsA("ScreenGui") and current.Enabled == false then
+            return false
+        end
+        if current == LocalPlayer:FindFirstChildOfClass("PlayerGui") then
+            break
+        end
+        current = current.Parent
+    end
+
+    return true
+end
+
 local function findSwordButton(timeout)
     local deadline = os.clock() + (timeout or 6)
 
@@ -116,7 +135,7 @@ local function findSwordButton(timeout)
 
         if pg then
             for _, obj in ipairs(pg:GetDescendants()) do
-                if obj:IsA("GuiButton") and effectivelyVisible(obj) then
+                if obj:IsA("GuiButton") and swordButtonVisible(obj) then
                     local labels = {
                         tostring(obj.Name or ""),
                     }
