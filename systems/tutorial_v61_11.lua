@@ -102,14 +102,91 @@ else
 end
 
 --========================================================--
--- STARTER WEAPON: PRESERVE THE PLAYER'S CHOICE
+-- AUTO-SELECT STARTER WEAPON: SWORD
 --========================================================--
 
--- Do not call SelectDefaultWeapon here: the player must be able to choose
--- Sword, Heavy Sword, or Staff from the game's own selection screen.
--- The tutorial skip is attempted only after leaving the choice to the player.
-status("starter weapon choice left to player")
-task.wait(0.65)
+-- Select only the plain "Sword" option. Do not match "Heavy Sword".
+-- The game may put the visible label on a child TextLabel, so inspect
+-- the button and its descendants.
+local function findSwordButton(timeout)
+    local deadline = os.clock() + (timeout or 6)
+
+    while os.clock() < deadline do
+        local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+
+        if pg then
+            for _, obj in ipairs(pg:GetDescendants()) do
+                if obj:IsA("GuiButton") and effectivelyVisible(obj) then
+                    local labels = {
+                        tostring(obj.Name or ""),
+                    }
+
+                    if obj:IsA("TextButton") then
+                        table.insert(labels, tostring(obj.Text or ""))
+                    end
+
+                    for _, child in ipairs(obj:GetDescendants()) do
+                        if child:IsA("TextLabel")
+                            or child:IsA("TextButton")
+                        then
+                            table.insert(labels, tostring(child.Text or ""))
+                        end
+                    end
+
+                    local hasSword = false
+                    local hasHeavySword = false
+
+                    for _, label in ipairs(labels) do
+                        local low = string.lower(label)
+                        local compact = string.gsub(low, "[%s_%-]", "")
+
+                        if string.find(low, "heavy sword", 1, true)
+                            or string.find(compact, "heavysword", 1, true)
+                        then
+                            hasHeavySword = true
+                        end
+
+                        if low == "sword"
+                            or compact == "sword"
+                            or string.find(low, "select sword", 1, true)
+                            or string.find(low, "choose sword", 1, true)
+                        then
+                            hasSword = true
+                        end
+                    end
+
+                    if hasSword and not hasHeavySword then
+                        return obj
+                    end
+                end
+            end
+        end
+
+        task.wait(0.12)
+    end
+end
+
+status("looking for plain Sword option")
+local swordButton = findSwordButton(6)
+
+if swordButton then
+    local selected, method = fireSignal(swordButton.Activated), "Activated"
+
+    if not selected then
+        selected = fireSignal(swordButton.MouseButton1Click)
+        method = "MouseButton1Click"
+    end
+
+    if not selected then
+        selected = virtualClick(swordButton)
+        method = "VirtualClick"
+    end
+
+    status("Sword selection sent=" .. tostring(selected) .. " via=" .. method)
+    task.wait(0.65)
+else
+    status("plain Sword option not found | continuing without weapon selection")
+end
 
 if waitTeleport(0.20) then
     return
