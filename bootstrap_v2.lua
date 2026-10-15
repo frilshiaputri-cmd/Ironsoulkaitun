@@ -57,6 +57,7 @@ getgenv().K5HubDiagnostics = {
 }
 diag("INFO", "bootstrap entry started; version=K5-HUB IRONSOUL V2")
 
+local TUTORIAL_PLACE_ID = 76701861705540
 local LOBBY_PLACE_ID = 117533937949084
 
 -- Level-cap monitor is handled directly by this bootstrap; no auto_redeem_v2 module is used.
@@ -558,14 +559,19 @@ local function looksLikeDungeon()
 end
 
 local route, routeName
-if game.PlaceId == LOBBY_PLACE_ID or workspace:GetAttribute("WorldName") == "Lobby" then
+if game.PlaceId == TUTORIAL_PLACE_ID then
+    route, routeName = "systems/tutorial.lua", "Tutorial"
+elseif game.PlaceId == LOBBY_PLACE_ID or workspace:GetAttribute("WorldName") == "Lobby" then
     route, routeName = "systems/lobby.lua", "Lobby"
 elseif looksLikeDungeon() then
     route, routeName = "systems/combat.lua", "Dungeon"
 else
     for attempt = 1, 30 do
         task.wait(0.5)
-        if game.PlaceId == LOBBY_PLACE_ID or workspace:GetAttribute("WorldName") == "Lobby" then
+        if game.PlaceId == TUTORIAL_PLACE_ID then
+            route, routeName = "systems/tutorial.lua", "Tutorial"
+            break
+        elseif game.PlaceId == LOBBY_PLACE_ID or workspace:GetAttribute("WorldName") == "Lobby" then
             route, routeName = "systems/lobby.lua", "Lobby"
             break
         elseif looksLikeDungeon() then
