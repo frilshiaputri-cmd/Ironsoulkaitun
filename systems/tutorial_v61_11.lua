@@ -164,12 +164,12 @@ end
 
 
 --========================================================--
--- AUTO-SELECT STARTER WEAPON: SWORD
+-- AUTO-SELECT LEFT STARTER WEAPON CARD: SENJATA RINGAN
 --========================================================--
 
--- Select only the plain "Sword" option. Do not match "Heavy Sword".
--- The game may put the visible label on a child TextLabel, so inspect
--- the button and its descendants.
+-- On the game's starter screen the left card is labeled "Senjata Ringan"
+-- and describes "Kecepatan Serangan/Mobilitas". The button itself says
+-- "Memilih", so do not search for a button literally named "Sword".
 local function swordButtonVisible(obj)
     local current = obj
 
@@ -189,55 +189,73 @@ local function swordButtonVisible(obj)
     return true
 end
 
-local function findSwordButton(timeout)
-    local deadline = os.clock() + (timeout or 6)
+local function textOf(obj)
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+        return tostring(obj.Text or "")
+    end
+    return tostring(obj.Name or "")
+end
+
+local function cardContainsLightSword(card)
+    local labels = { string.lower(textOf(card)) }
+
+    for _, child in ipairs(card:GetDescendants()) do
+        if child:IsA("TextLabel") or child:IsA("TextButton") then
+            table.insert(labels, string.lower(tostring(child.Text or "")))
+        end
+    end
+
+    for _, label in ipairs(labels) do
+        local normalized = string.gsub(label, "%s+", "")
+        if string.find(label, "senjata ringan", 1, true)
+            or string.find(normalized, "senjateringan", 1, true)
+            or string.find(label, "kecepatan serangan", 1, true)
+            or string.find(label, "mobility", 1, true)
+        then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function findLightSwordSelectButton(timeout)
+    local deadline = os.clock() + (timeout or 8)
 
     while os.clock() < deadline do
         local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
 
         if pg then
-            for _, obj in ipairs(pg:GetDescendants()) do
-                if obj:IsA("GuiButton") and swordButtonVisible(obj) then
-                    local labels = {
-                        tostring(obj.Name or ""),
-                    }
-
-                    if obj:IsA("TextButton") then
-                        table.insert(labels, tostring(obj.Text or ""))
-                    end
-
-                    for _, child in ipairs(obj:GetDescendants()) do
-                        if child:IsA("TextLabel")
-                            or child:IsA("TextButton")
+            -- Find the card by its displayed title/description, then click
+            -- the "Memilih" button contained inside that same card.
+            for _, label in ipairs(pg:GetDescendants()) do
+                if (label:IsA("TextLabel") or label:IsA("TextButton"))
+                    and string.find(string.lower(textOf(label)), "senjata ringan", 1, true)
+                then
+                    local ancestor = label.Parent
+                    while ancestor and ancestor ~= pg do
+                        if ancestor:IsA("GuiObject") and swordButtonVisible(ancestor)
+                            and cardContainsLightSword(ancestor)
                         then
-                            table.insert(labels, tostring(child.Text or ""))
+                            for _, item in ipairs(ancestor:GetDescendants()) do
+                                if item:IsA("GuiButton") and swordButtonVisible(item) then
+                                    local buttonText = string.lower(textOf(item))
+                                    for _, child in ipairs(item:GetDescendants()) do
+                                        if child:IsA("TextLabel") or child:IsA("TextButton") then
+                                            buttonText = buttonText .. " " .. string.lower(tostring(child.Text or ""))
+                                        end
+                                    end
+
+                                    if string.find(buttonText, "memilih", 1, true)
+                                        or string.find(buttonText, "select", 1, true)
+                                        or string.find(buttonText, "choose", 1, true)
+                                    then
+                                        return item
+                                    end
+                                end
+                            end
                         end
-                    end
-
-                    local hasSword = false
-                    local hasHeavySword = false
-
-                    for _, label in ipairs(labels) do
-                        local low = string.lower(label)
-                        local compact = string.gsub(low, "[%s_%-]", "")
-
-                        if string.find(low, "heavy sword", 1, true)
-                            or string.find(compact, "heavysword", 1, true)
-                        then
-                            hasHeavySword = true
-                        end
-
-                        if low == "sword"
-                            or compact == "sword"
-                            or string.find(low, "select sword", 1, true)
-                            or string.find(low, "choose sword", 1, true)
-                        then
-                            hasSword = true
-                        end
-                    end
-
-                    if hasSword and not hasHeavySword then
-                        return obj
+                        ancestor = ancestor.Parent
                     end
                 end
             end
@@ -247,8 +265,8 @@ local function findSwordButton(timeout)
     end
 end
 
-status("looking for plain Sword option")
-local swordButton = findSwordButton(6)
+status("looking for left Senjata Ringan card")
+local swordButton = findLightSwordSelectButton(8)
 
 if swordButton then
     local selected, method = fireSignal(swordButton.Activated), "Activated"
@@ -263,10 +281,10 @@ if swordButton then
         method = "VirtualClick"
     end
 
-    status("Sword selection sent=" .. tostring(selected) .. " via=" .. method)
+    status("left Senjata Ringan selected=" .. tostring(selected) .. " via=" .. method)
     task.wait(0.65)
 else
-    status("plain Sword option not found | continuing without weapon selection")
+    status("left Senjata Ringan card/button not found | continuing to Skip Tutorial")
 end
 
 if waitTeleport(0.20) then
