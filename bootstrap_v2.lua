@@ -59,10 +59,7 @@ diag("INFO", "bootstrap entry started; version=K5-HUB IRONSOUL V2")
 
 local LOBBY_PLACE_ID = 117533937949084
 
--- V2: auto redeem is enabled; module is loaded after the main route.
-getgenv().IronSoulAutoRedeemEnabled = Config.AUTO_REDEEM ~= false
-
--- At level 30, stop farming; Auto Redeem V2 handles returning to lobby and final exit.
+-- Level-cap monitor is handled directly by this bootstrap; no auto_redeem_v2 module is used.
 local LEVEL_STOP = tonumber(Config.LEVEL_STOP)
 if LEVEL_STOP == nil then LEVEL_STOP = 30 end
 
@@ -455,7 +452,7 @@ local function loadRaw(path)
         status("MASTER OFF | module blocked: " .. tostring(path))
         return false, "K5-HUB master switch is OFF"
     end
-    if getgenv().IronSoulLevelStopReached and path ~= "systems/auto_redeem_v2.lua" and path ~= "systems/performance_booster.lua" then
+    if getgenv().IronSoulLevelStopReached and path ~= "systems/performance_booster.lua" then
         status("LEVEL STOP | farm module load blocked")
         return false, "level limit reached"
     end
@@ -594,13 +591,4 @@ getgenv().IronSoulRuntime = {
 print("[K5-HUB IRONSOUL V2]", routeName)
 status(routeName .. " | starting")
 local routeOk = loadRaw(route)
-if Config.AUTO_REDEEM ~= false then
-    local redeemOk, redeemErr = loadRaw("systems/auto_redeem_v2.lua")
-    if not redeemOk then
-        diag("ERROR", "Auto Redeem module failed: " .. tostring(redeemErr))
-        status("Auto Redeem module error | see diagnostics")
-    else
-        diag("INFO", "Auto Redeem module loaded")
-    end
-end
 return routeOk
