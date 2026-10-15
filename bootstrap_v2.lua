@@ -258,6 +258,90 @@ local function status(message)
 end
 getgenv().IronSoulStatus = status
 
+-- MASTER ON/OFF: controls the whole K5-HUB session, not just graphics.
+-- Modules can poll IronSoulMasterEnabled; managed connections/threads are stopped on OFF.
+local function setMasterEnabled(value)
+    local env = getgenv()
+    env.IronSoulMasterEnabled = value == true
+    local cfg = env.IronSoulConfig
+    if type(cfg) == "table" then
+        if value == true then
+            cfg.FARM = env.IronSoulPreviousFarmMode or "NEWBIE"
+        else
+            if cfg.FARM ~= "OFF" then env.IronSoulPreviousFarmMode = cfg.FARM end
+            cfg.FARM = "OFF"
+        end
+    end
+    if value ~= true then
+        env.IronSoulStopRequested = true
+        if type(env.IronSoulManagedConnections) == "table" then
+            for _, connection in pairs(env.IronSoulManagedConnections) do
+                pcall(function() connection:Disconnect() end)
+            end
+            table.clear(env.IronSoulManagedConnections)
+        end
+        if type(env.IronSoulManagedThreads) == "table" then
+            for _, thread in pairs(env.IronSoulManagedThreads) do
+                pcall(task.cancel, thread)
+            end
+            table.clear(env.IronSoulManagedThreads)
+        end
+    else
+        env.IronSoulStopRequested = false
+    end
+    local perf = env.K5PerformanceBooster
+    if type(perf) == "table" and type(perf.SetEnabled) == "function" then
+        pcall(perf.SetEnabled, value == true)
+    end
+    local statusFn = env.IronSoulStatus
+    if type(statusFn) == "function" then
+        pcall(statusFn, value and "MASTER ON | K5-HUB systems enabled" or "MASTER OFF | stop requested; farm mode OFF")
+    end
+    local btn = env.IronSoulMasterToggleButton
+    if btn then
+        pcall(function()
+            btn.Text = value and "K5-HUB V2: ON" or "K5-HUB V2: OFF"
+            btn.BackgroundColor3 = value and Color3.fromRGB(44, 130, 80) or Color3.fromRGB(115, 65, 65)
+        end)
+    end
+end
+getgenv().IronSoulSetMasterEnabled = setMasterEnabled
+getgenv().IronSoulMasterEnabled = getgenv().IronSoulMasterEnabled ~= false
+getgenv().IronSoulManagedConnections = getgenv().IronSoulManagedConnections or {}
+getgenv().IronSoulManagedThreads = getgenv().IronSoulManagedThreads or {}
+
+local function buildMasterToggle()
+    local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui", 10)
+    if not pg then return end
+    local old = pg:FindFirstChild("K5MasterToggleGui")
+    if old then old:Destroy() end
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "K5MasterToggleGui"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = false
+    gui.DisplayOrder = 1000001
+    local button = Instance.new("TextButton")
+    button.Name = "MasterToggle"
+    button.Size = UserInputService.TouchEnabled and UDim2.fromOffset(170, 32) or UDim2.fromOffset(190, 32)
+    button.Position = UDim2.new(0, 8, 0, 62)
+    button.BorderSizePixel = 0
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 13
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Parent = gui
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 7)
+    corner.Parent = button
+    button.Activated:Connect(function()
+        setMasterEnabled(getgenv().IronSoulMasterEnabled ~= true)
+    end)
+    gui.Parent = pg
+    getgenv().IronSoulMasterToggleButton = button
+    setMasterEnabled(getgenv().IronSoulMasterEnabled ~= false)
+end
+
+task.spawn(buildMasterToggle)
+
 -- V2 Anti-AFK: react to Roblox's idle signal without running a constant jump loop.
 -- This can reduce idle-disconnect risk, but cannot prevent server-side kicks,
 -- network loss, maintenance, or experience-specific AFK rules.
@@ -364,6 +448,10 @@ local function shortError(err)
 end
 
 local function loadRaw(path)
+    if getgenv().IronSoulMasterEnabled == false and path ~= "systems/performance_booster.lua" then
+        status("MASTER OFF | module blocked: " .. tostring(path))
+        return false, "K5-HUB master switch is OFF"
+    end
     if getgenv().IronSoulLevelStopReached and path ~= "systems/auto_redeem_v2.lua" and path ~= "systems/performance_booster.lua" then
         status("LEVEL STOP | farm module load blocked")
         return false, "level limit reached"
@@ -401,6 +489,10 @@ end
 -- session deliberately schedules a cross-place transition. It does not run
 -- the loader on initial join or merely because a map was opened.
 local function queueBootstrap(reason)
+    if getgenv().IronSoulMasterEnabled == false then
+        status("MASTER OFF | teleport continuation not queued")
+        return false
+    end
     if type(RealQueue) ~= "function" then
         getgenv().IronSoulManualExecutionOnly = true
         status("Teleport continuation unavailable | executor has no native queue; run LOADER.lua manually after teleport")
