@@ -110,7 +110,6 @@ if LEVEL_STOP > 0 then
                 diag("INFO", "Level cap reached (" .. tostring(level) .. "); farming stopped; disable teleport queue")
                 getgenv().IronSoulNoAutoContinue = true
                 getgenv().IronSoulManualExecutionOnly = true
-                status -- forward declaration may not exist yet; use native toast directly below
                 pcall(function()
                     game:GetService("StarterGui"):SetCore("SendNotification", {
                         Title = "K5-Hub V2",
