@@ -241,7 +241,8 @@ local function getPatcher()
     return patcher
 end
 
-return getPatcher()({
+local patcherOk, patchedLobby = pcall(function()
+    return getPatcher()({
     repository = "frilshiaputri-cmd/Ironsoulkaitun",
     base_repository = "MUshihara/ironsoulkaitun",
     base_commit = "1d47f7f50ec8ecd92bca691b17d586d6bdecfa55",
@@ -252,4 +253,16 @@ return getPatcher()({
         "systems/patches/lobby_v61_8_forge_metrics.patch",
         "systems/patches/lobby_v61_9_disable_season_spin.patch",
     },
-})
+    })
+end)
+
+if patcherOk and patchedLobby ~= nil then
+    return patchedLobby
+end
+
+status("PATCH WARNING | lobby patches incompatible; loading base lobby module")
+local fallbackUrl = "https://raw.githubusercontent.com/MUshihara/ironsoulkaitun/1d47f7f50ec8ecd92bca691b17d586d6bdecfa55/systems/lobby.lua?t=" .. tostring(os.time())
+local fallbackSource = game:HttpGet(fallbackUrl)
+local fallbackFn, fallbackErr = loadstring(fallbackSource)
+assert(fallbackFn, "lobby fallback compile failed: " .. tostring(fallbackErr))
+return fallbackFn()
