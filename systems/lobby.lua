@@ -207,8 +207,8 @@ end
 local patcherOk, patchedLobby = pcall(function()
     return getPatcher()({
     repository = "frilshiaputri-cmd/Ironsoulkaitun",
-    base_repository = "frilshiaputri-cmd/Ironsoulkaitun",
-    base_commit = "3f1e55709d765489e98158228125db9506b8fc15",
+    base_repository = "MUshihara/ironsoulkaitun",
+    base_commit = "1d47f7f50ec8ecd92bca691b17d586d6bdecfa55",
     path = "systems/lobby.lua",
     patch_paths = {
         "systems/patches/lobby_v61_6.patch",
