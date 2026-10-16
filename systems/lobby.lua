@@ -200,15 +200,19 @@ getgenv().IronSoulConfig = getgenv().IronSoulConfig or {
     TICKETS = %q,
     HEADLESS = %s,
     DEBUG_LOGS = %s,
+    LEVEL_STOP = 40,
 }
-loadstring(game:HttpGet(%q .. "?t=" .. tostring(os.time())))()
+local source = game:HttpGet(%q .. "?t=" .. tostring(os.time()))
+local fn, err = loadstring(source)
+assert(fn, err)
+fn()
 ]],
                 tostring(tonumber(config.FPS_CAP) or 8),
                 tostring(config.FARM or "NEWBIE"),
                 tostring(config.TICKETS or "SMART"),
                 tostring(config.HEADLESS ~= false),
                 tostring(config.DEBUG_LOGS == true),
-                BASE .. "bootstrap.lua"
+                BASE .. "bootstrap_v2.lua"
             )
 
             local ok, result = pcall(queue, payload)
