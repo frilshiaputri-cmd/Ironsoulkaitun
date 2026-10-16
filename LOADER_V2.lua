@@ -6,7 +6,7 @@ getgenv().IronSoulConfig = {
     TICKETS = "SMART",
     HEADLESS = true,
     DEBUG_LOGS = false,
-    LEVEL_STOP = 30,
+    LEVEL_STOP = 40,
     AUTO_REDEEM = false,
     ANTI_AFK = true,
 }
