@@ -63,7 +63,7 @@
 +    claimSeasonPass()
 +    claimSevenDaily()
 +    claimGuidebook()
-+    claimUpdateLog()
++    -- claimUpdateLog() -- disabled by request
 +else
 +    important("Auto Claim waiting for Lv40 | current=" .. tostring(level or "unknown"))
 +end
