@@ -273,8 +273,9 @@ if cfg then
     cfg:GetAttributeChangedSignal("GameRoundComplete"):Connect(function() checkSettlement("ROUND_COMPLETE") end)
 end
 
-local queueBootstrap = getgenv().IronSoulQueueBootstrap
-if type(queueBootstrap) == "function" then pcall(queueBootstrap, "cave run") end
+-- Do not queue at Cave entry: the continuation is queued once, immediately
+-- before returning to Lobby in returnLobby(). Queuing both here and at clear
+-- can execute the bootstrap twice after one teleport on queue APIs that append.
 
 if StartTicket ~= nil and StartTicket <= 0 then
     status("NOTICE | Ticket1 is 0 after cave entry; finishing paid run only")
