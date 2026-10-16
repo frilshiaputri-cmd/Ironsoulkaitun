@@ -1,5 +1,5 @@
 --========================================================--
--- K5-HUB IRONSOUL V2 - COMPACT MOBILE BOOT WITH DIAGNOSTICS
+-- K5-Hub V2 - COMPACT MOBILE BOOT WITH DIAGNOSTICS
 --========================================================--
 
 getgenv().IronSoulConfig =
@@ -12,7 +12,7 @@ getgenv().IronSoulConfig =
     }
 
 local Config = getgenv().IronSoulConfig
-local VERSION = "K5HUB_IRONSOUL_V2"
+local VERSION = "K5_HUB_V2"
 local BASE =
     "https://raw.githubusercontent.com/"
     .. "frilshiaputri-cmd/Ironsoulkaitun/main/"
@@ -35,7 +35,7 @@ local function diag(level, message)
     )
     table.insert(diagLines, line)
     while #diagLines > 80 do table.remove(diagLines, 1) end
-    print("[K5-HUB IRONSOUL V2 Diagnostics] " .. line)
+    print("[K5-Hub V2 Diagnostics] " .. line)
     if type(writefile) == "function" then
         pcall(function()
             local old = ""
@@ -55,7 +55,7 @@ getgenv().K5HubDiagnostics = {
     Error = function(message) diag("ERROR", message) end,
     File = DIAG_FILE,
 }
-diag("INFO", "bootstrap entry started; version=K5-HUB IRONSOUL V2")
+diag("INFO", "bootstrap entry started; version=K5-Hub V2")
 
 local TUTORIAL_PLACE_ID = 76701861705540
 local LOBBY_PLACE_ID = 117533937949084
@@ -172,7 +172,7 @@ end
 
 local RealQueue, RealQueueName = findRealTeleportQueue()
 local Caps = {
-    Version = "K5-HUB IRONSOUL V2",
+    Version = "K5-Hub V2",
     Executor = executorName(),
     Touch = UserInputService.TouchEnabled == true,
     Queue = type(RealQueue) == "function",
@@ -210,132 +210,9 @@ task.spawn(function()
     end
 end)
 
-local statusLabel = nil
-local statusPanel = nil
-local statusLogo = nil
-local statusCollapsed = false
 local stickyError = false
 
-local function ensureStatusGui()
-    if statusLabel and statusLabel.Parent then return statusLabel end
-    if not Caps.Touch and Config.MOBILE_STATUS ~= true then return nil end
-    local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui", 5)
-    if not pg then return nil end
-    local oldGui = pg:FindFirstChild("IronSoulMobileStatus")
-    if oldGui then pcall(function() oldGui:Destroy() end) end
-
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "IronSoulMobileStatus"
-    gui.ResetOnSpawn = false
-    gui.IgnoreGuiInset = false
-    gui.DisplayOrder = 999999
-
-    local panel = Instance.new("Frame")
-    panel.Name = "CompactPanel"
-    panel.Size = UDim2.fromOffset(350, 88)
-    panel.Position = UDim2.new(0, 7, 0, 7)
-    panel.BackgroundColor3 = Color3.fromRGB(15, 12, 35)
-    panel.BackgroundTransparency = 0.12
-    panel.BorderSizePixel = 0
-    panel.ClipsDescendants = true
-    panel.Parent = gui
-    local panelCorner = Instance.new("UICorner")
-    panelCorner.CornerRadius = UDim.new(0, 9)
-    panelCorner.Parent = panel
-    local outline = Instance.new("UIStroke")
-    outline.Color = Color3.fromRGB(145, 70, 255)
-    outline.Thickness = 1.4
-    outline.Transparency = 0.12
-    outline.Parent = panel
-
-    local logo = Instance.new("TextButton")
-    logo.Name = "K5Logo"
-    logo.Size = UDim2.fromOffset(53, 76)
-    logo.Position = UDim2.fromOffset(5, 6)
-    logo.BackgroundColor3 = Color3.fromRGB(39, 17, 83)
-    logo.BackgroundTransparency = 0.05
-    logo.BorderSizePixel = 0
-    logo.Text = "K5\nHUB"
-    logo.TextColor3 = Color3.fromRGB(220, 190, 255)
-    logo.TextSize = 15
-    logo.Font = Enum.Font.GothamBlack
-    logo.TextWrapped = true
-    logo.AutoButtonColor = true
-    logo.Parent = panel
-    local logoCorner = Instance.new("UICorner")
-    logoCorner.CornerRadius = UDim.new(0, 7)
-    logoCorner.Parent = logo
-
-    local title = Instance.new("TextLabel")
-    title.Name = "Title"
-    title.Size = UDim2.new(1, -70, 0, 19)
-    title.Position = UDim2.fromOffset(64, 5)
-    title.BackgroundTransparency = 1
-    title.BorderSizePixel = 0
-    title.Text = "K5-HUB IRONSOUL V2"
-    title.TextColor3 = Color3.fromRGB(245, 238, 255)
-    title.TextSize = 12
-    title.Font = Enum.Font.GothamBold
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.TextTruncate = Enum.TextTruncate.AtEnd
-    title.Parent = panel
-
-    local subtitle = Instance.new("TextLabel")
-    subtitle.Name = "Subtitle"
-    subtitle.Size = UDim2.new(1, -70, 0, 16)
-    subtitle.Position = UDim2.fromOffset(64, 25)
-    subtitle.BackgroundTransparency = 1
-    subtitle.BorderSizePixel = 0
-    subtitle.Text = "LOADER • MOBILE • V2"
-    subtitle.TextColor3 = Color3.fromRGB(190, 175, 220)
-    subtitle.TextSize = 10
-    subtitle.Font = Enum.Font.Gotham
-    subtitle.TextXAlignment = Enum.TextXAlignment.Left
-    subtitle.TextTruncate = Enum.TextTruncate.AtEnd
-    subtitle.Parent = panel
-
-    local label = Instance.new("TextLabel")
-    label.Name = "Status"
-    label.Size = UDim2.new(1, -70, 0, 40)
-    label.Position = UDim2.fromOffset(64, 43)
-    label.BackgroundTransparency = 1
-    label.BorderSizePixel = 0
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.TextYAlignment = Enum.TextYAlignment.Top
-    label.TextWrapped = true
-    label.TextTruncate = Enum.TextTruncate.AtEnd
-    label.TextSize = 10
-    label.Font = Enum.Font.GothamMedium
-    label.TextColor3 = Color3.fromRGB(110, 255, 170)
-    label.Text = "Status: Booting..."
-    label.Parent = panel
-
-    logo.Activated:Connect(function()
-        statusCollapsed = not statusCollapsed
-        if statusCollapsed then
-            panel.Size = UDim2.fromOffset(63, 62)
-            logo.Size = UDim2.fromOffset(53, 50)
-            logo.Position = UDim2.fromOffset(5, 6)
-            title.Visible = false
-            subtitle.Visible = false
-            label.Visible = false
-        else
-            panel.Size = UDim2.fromOffset(350, 88)
-            logo.Size = UDim2.fromOffset(53, 76)
-            logo.Position = UDim2.fromOffset(5, 6)
-            title.Visible = true
-            subtitle.Visible = true
-            label.Visible = true
-        end
-    end)
-
-    gui.Parent = pg
-    statusPanel = panel
-    statusLogo = logo
-    statusLabel = label
-    return label
-end
-
+-- K5-Hub V2: no on-screen status table/panel. Keep diagnostics in console/file.
 local function status(message)
     local value = tostring(message or "")
     local isError = string.sub(value, 1, 5) == "ERROR" or string.sub(value, 1, 5) == "STUCK"
@@ -345,20 +222,9 @@ local function status(message)
         return
     end
     diag(isError and "ERROR" or "STATUS", value)
-    local label = ensureStatusGui()
-    if label then
-        pcall(function()
-            local display = value:gsub("[\\r\\n]+", " ")
-            if #display > 155 then display = string.sub(display, 1, 152) .. "..." end
-            label.Text = "Status: " .. display
-            label.TextColor3 = isError
-                and Color3.fromRGB(255, 115, 125)
-                or Color3.fromRGB(110, 255, 170)
-        end)
-    end
     if type(writefile) == "function" then
         pcall(writefile, "K5Hub_V2_Status.txt", table.concat({
-            "Version=K5-HUB IRONSOUL V2",
+            "Version=K5-Hub V2",
             "Executor=" .. tostring(Caps.Executor),
             "Touch=" .. tostring(Caps.Touch),
             "NativeQueue=" .. tostring(Caps.Queue),
@@ -442,7 +308,7 @@ task.spawn(function()
         local character = LocalPlayer.Character
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
         diag("DATA", string.format(
-            "heartbeat version=K5-HUB IRONSOUL V2 level=%s health=%s/%s world=%s queue=%s",
+            "heartbeat version=K5-Hub V2 level=%s health=%s/%s world=%s queue=%s",
             tostring(LocalPlayer:GetAttribute("LG_Level") or "n/a"),
             tostring(humanoid and humanoid.Health or "n/a"),
             tostring(humanoid and humanoid.MaxHealth or "n/a"),
@@ -516,25 +382,25 @@ local function loadRaw(path)
     local ok, source = pcall(game.HttpGet, game, cacheBust(path))
     if not ok or type(source) ~= "string" then
         local message = "HTTP load failed | " .. tostring(path) .. " | " .. tostring(source)
-        diag("ERROR", message); warn("[K5-HUB IRONSOUL V2] " .. message); status("ERROR | " .. shortError(message))
+        diag("ERROR", message); warn("[K5-Hub V2] " .. message); status("ERROR | " .. shortError(message))
         return false
     end
     local normalized, normalizeErr = normalizeSource(source)
     if not normalized then
         local message = "Source normalization failed | " .. tostring(path) .. " | " .. tostring(normalizeErr)
-        warn("[K5-HUB IRONSOUL V2] " .. message); status("ERROR | " .. shortError(message))
+        warn("[K5-Hub V2] " .. message); status("ERROR | " .. shortError(message))
         return false
     end
     local fn, err = loadstring(normalized)
     if not fn then
         local message = "Compile failed | " .. tostring(path) .. " | " .. tostring(err)
-        warn("[K5-HUB IRONSOUL V2] " .. message); status("ERROR | " .. shortError(message))
+        warn("[K5-Hub V2] " .. message); status("ERROR | " .. shortError(message))
         return false
     end
     local runOk, result = pcall(fn)
     if not runOk then
         local message = "Runtime failed | " .. tostring(path) .. " | " .. tostring(result)
-        warn("[K5-HUB IRONSOUL V2] " .. message); status("ERROR | " .. shortError(message))
+        warn("[K5-Hub V2] " .. message); status("ERROR | " .. shortError(message))
         return false
     end
     return true, result
@@ -637,19 +503,19 @@ else
     if not route then
         local message = "Unknown place after 15s | " .. tostring(game.PlaceId)
             .. " | WorldName=" .. tostring(workspace:GetAttribute("WorldName"))
-        warn("[K5-HUB IRONSOUL V2] " .. message); status(message)
+        warn("[K5-Hub V2] " .. message); status(message)
         return
     end
 end
 
 getgenv().IronSoulRuntime = {
-    Version = "K5-HUB IRONSOUL V2",
+    Version = "K5-Hub V2",
     Route = route,
     PlaceId = game.PlaceId,
     StartedAt = os.clock(),
     NativeTeleportQueue = Caps.Queue,
 }
-print("[K5-HUB IRONSOUL V2]", routeName)
+print("[K5-Hub V2]", routeName)
 status(routeName .. " | starting")
 local routeOk = loadRaw(route)
 return routeOk
