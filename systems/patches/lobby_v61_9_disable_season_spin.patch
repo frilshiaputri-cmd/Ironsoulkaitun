@@ -84,3 +84,12 @@
 +end
  
  local function writeRewardAudit()
+@@ -1837,7 +1852,7 @@
+ local dailyLoginPending,
+     dailyLoginRows =
+         inspectDailyLogin()
+ 
+-spendSeasonTickets()
++-- AUTO SEASON SPIN DISABLED: preserve SeasonTicket; never call TrySeasonLottery.
+ 
+ local function writeRewardAudit()
