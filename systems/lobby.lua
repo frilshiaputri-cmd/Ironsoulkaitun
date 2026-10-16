@@ -261,7 +261,7 @@ if patcherOk and patchedLobby ~= nil then
 end
 
 status("PATCH WARNING | lobby patches incompatible; loading base lobby module")
-local fallbackUrl = "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/${created.result.commit_sha}/${basePath}?t=" .. tostring(os.time())
+local fallbackUrl = BASE .. "systems/lobby_base_v60_1.lua?t=" .. tostring(os.time())
 local fallbackSource = game:HttpGet(fallbackUrl)
 local fallbackFn, fallbackErr = loadstring(fallbackSource)
 assert(fallbackFn, "lobby fallback compile failed: " .. tostring(fallbackErr))
