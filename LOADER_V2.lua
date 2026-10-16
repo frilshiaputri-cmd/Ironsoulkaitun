@@ -1,4 +1,4 @@
--- K5-HUB IRONSOUL V2 - PUBLIC LOADER
+-- K5-Hub V2 - PUBLIC LOADER
 -- Manual start only. Does not auto-run on initial server/map entry.
 getgenv().IronSoulConfig = {
     FPS_CAP = 60,
@@ -22,7 +22,7 @@ local ok, result = pcall(function()
 end)
 
 if not ok then
-    local message = "[K5-HUB IRONSOUL V2] LOADER ERROR | " .. tostring(result)
+    local message = "[K5-Hub V2] LOADER ERROR | " .. tostring(result)
     warn(message)
     if type(writefile) == "function" then
         pcall(function()
