@@ -471,6 +471,13 @@ getgenv().IronSoulBaseURL = BASE
 getgenv().IronSoulQueueBootstrap = queueBootstrap
 getgenv().IronSoulLoadRaw = loadRaw
 
+-- Pre-queue the same V2 bootstrap before any map transition. queue_on_teleport
+-- only works when called in the current place, before Roblox teleports away.
+-- If Delta does not expose a native queue API, report that limitation clearly.
+task.defer(function()
+    pcall(queueBootstrap, "bootstrap ready; prepare next map")
+end)
+
 -- Auto-start the graphics/FPS helper whenever this bootstrap is run on a map.
 -- This does not auto-run the full farm script on a fresh join without the loader.
 task.spawn(function()
