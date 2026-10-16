@@ -107,13 +107,27 @@ if LEVEL_STOP > 0 then
                 if type(getgenv().IronSoulConfig) == "table" then
                     getgenv().IronSoulConfig.FARM = "OFF"
                 end
-                diag("INFO", "Level cap reached (" .. tostring(level) .. "); farming stopped; waiting for reward-claim flow")
-                warn("[IronSoul] Level 40 reached; farming disabled. Waiting briefly for daily/reward claims before leaving.")
-                -- Allow the lobby reward flow to attempt daily claims before kicking.
-                task.wait(8)
+                diag("INFO", "Level cap reached (" .. tostring(level) .. "); farming stopped; disable teleport queue")
+                getgenv().IronSoulNoAutoContinue = true
+                getgenv().IronSoulManualExecutionOnly = true
+                status -- forward declaration may not exist yet; use native toast directly below
                 pcall(function()
-                    LocalPlayer:Kick("Batas level 40 tercapai. Klaim hadiah dicoba; keluar dari server.")
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "K5-Hub V2",
+                        Text = "Level 40 tercapai. Farming berhenti; kembali ke lobby untuk klaim hadiah.",
+                        Duration = 6,
+                    })
                 end)
+                if game.PlaceId ~= LOBBY_PLACE_ID and workspace:GetAttribute("WorldName") ~= "Lobby" then
+                    local teleported = pcall(function()
+                        game:GetService("TeleportService"):Teleport(LOBBY_PLACE_ID, LocalPlayer)
+                    end)
+                    diag(teleported and "INFO" or "ERROR", teleported
+                        and "Requested return to lobby at level cap"
+                        or "Failed to request lobby teleport at level cap")
+                else
+                    diag("INFO", "Already in lobby at level cap; leave lobby reward maintenance available")
+                end
                 break
             end
             task.wait(0.5)
@@ -385,7 +399,10 @@ local function loadRaw(path)
         status("MASTER OFF | module blocked: " .. tostring(path))
         return false, "K5-HUB master switch is OFF"
     end
-    if getgenv().IronSoulLevelStopReached and path ~= "systems/performance_booster.lua" then
+    if getgenv().IronSoulLevelStopReached
+        and path ~= "systems/performance_booster.lua"
+        and path ~= "systems/lobby.lua"
+    then
         status("LEVEL STOP | farm module load blocked")
         return false, "level limit reached"
     end
@@ -424,6 +441,11 @@ end
 local function queueBootstrap(reason)
     if getgenv().IronSoulMasterEnabled == false then
         status("MASTER OFF | teleport continuation not queued")
+        return false
+    end
+    if getgenv().IronSoulNoAutoContinue == true or getgenv().IronSoulLevelStopReached == true then
+        getgenv().IronSoulManualExecutionOnly = true
+        status("LEVEL STOP | automatic teleport continuation disabled")
         return false
     end
 
@@ -475,12 +497,9 @@ getgenv().IronSoulBaseURL = BASE
 getgenv().IronSoulQueueBootstrap = queueBootstrap
 getgenv().IronSoulLoadRaw = loadRaw
 
--- Pre-queue the same V2 bootstrap before any map transition. queue_on_teleport
--- only works when called in the current place, before Roblox teleports away.
--- If Delta does not expose a native queue API, report that limitation clearly.
-task.defer(function()
-    pcall(queueBootstrap, "bootstrap ready; prepare next map")
-end)
+-- No automatic pre-queue: a fresh server join must never auto-execute the loader.
+-- Continuation is only allowed when explicitly requested by an active session,
+-- and is disabled permanently for this run once the level cap is reached.
 
 -- Auto-start the graphics/FPS helper whenever this bootstrap is run on a map.
 -- This does not auto-run the full farm script on a fresh join without the loader.
