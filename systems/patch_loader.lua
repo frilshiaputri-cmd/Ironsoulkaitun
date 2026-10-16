@@ -388,12 +388,26 @@ return function(opts)
         local patch =
             game:HttpGet(patchUrl)
 
-        patched =
-            applyUnifiedDiff(
-                patched,
-                patch,
-                targetPath
-            )
+        local patchOk, patchResult = pcall(
+            applyUnifiedDiff,
+            patched,
+            patch,
+            targetPath
+        )
+        if patchOk then
+            patched = patchResult
+        else
+            local warning = "PATCH SKIPPED: " .. tostring(patchPath) .. " | " .. tostring(patchResult)
+            if type(getgenv) == "function" then
+                local env = getgenv()
+                if type(env.IronSoulStatus) == "function" then
+                    pcall(env.IronSoulStatus, warning)
+                end
+            end
+            if type(warn) == "function" then
+                warn(warning)
+            end
+        end
     end
 
     local fn, err =
