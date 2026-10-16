@@ -212,7 +212,33 @@ end)
 getgenv().IronSoulLoadRaw = originalLoadRaw
 
 if not ok then
-    error(result)
+    -- Recovery path: a stale/invalid patch must not stop auto-execute entirely.
+    -- Run the pinned upstream combat source if the patch chain fails.
+    local fallbackOk, fallbackResult = pcall(function()
+        local fallbackSource = game:HttpGet(
+            "https://raw.githubusercontent.com/MUshihara/ironsoulkaitun/1d47f7f50ec8ecd92bca691b17d586d6bdecfa55/systems/combat.lua?t="
+                .. tostring(os.time())
+        )
+        local fallbackFn, fallbackErr = loadstring(fallbackSource)
+        if not fallbackFn then
+            error("Combat fallback compile failed: " .. tostring(fallbackErr))
+        end
+        return fallbackFn()
+    end)
+
+    if not fallbackOk then
+        local status = getgenv().IronSoulStatus
+        if type(status) == "function" then
+            pcall(status, "Combat recovery failed | " .. tostring(fallbackResult))
+        end
+        error(fallbackResult)
+    end
+
+    local status = getgenv().IronSoulStatus
+    if type(status) == "function" then
+        pcall(status, "Combat patch chain failed; pinned fallback started")
+    end
+    return fallbackResult
 end
 
 return result
