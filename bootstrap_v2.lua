@@ -189,52 +189,128 @@ getgenv().IronSoulTeleportQueueAvailable = Caps.Queue
 getgenv().IronSoulManualQueueMode = not Caps.Queue
 
 local statusLabel = nil
+local statusTitle = nil
 local stickyError = false
 local function ensureStatusGui()
     if statusLabel and statusLabel.Parent then return statusLabel end
     if not Caps.Touch and Config.MOBILE_STATUS ~= true then return nil end
     local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui", 5)
     if not pg then return nil end
-    local old = pg:FindFirstChild("IronSoulMobileStatus")
-    if old then pcall(function() old:Destroy() end) end
+    local oldGui = pg:FindFirstChild("IronSoulMobileStatus")
+    if oldGui then pcall(function() oldGui:Destroy() end) end
+
     local gui = Instance.new("ScreenGui")
     gui.Name = "IronSoulMobileStatus"
     gui.ResetOnSpawn = false
     gui.IgnoreGuiInset = false
     gui.DisplayOrder = 999999
+
+    -- Compact mobile panel: small K5 logo block on the left, loader info on the right.
+    local panel = Instance.new("Frame")
+    panel.Name = "CompactPanel"
+    panel.Size = UDim2.fromOffset(246, 62)
+    panel.Position = UDim2.new(0, 7, 0, 7)
+    panel.BackgroundColor3 = Color3.fromRGB(15, 12, 35)
+    panel.BackgroundTransparency = 0.12
+    panel.BorderSizePixel = 0
+    panel.Parent = gui
+
+    local panelCorner = Instance.new("UICorner")
+    panelCorner.CornerRadius = UDim.new(0, 9)
+    panelCorner.Parent = panel
+    local outline = Instance.new("UIStroke")
+    outline.Color = Color3.fromRGB(145, 70, 255)
+    outline.Thickness = 1.4
+    outline.Transparency = 0.12
+    outline.Parent = panel
+
+    local logo = Instance.new("TextLabel")
+    logo.Name = "K5Logo"
+    logo.Size = UDim2.fromOffset(51, 50)
+    logo.Position = UDim2.fromOffset(5, 6)
+    logo.BackgroundColor3 = Color3.fromRGB(39, 17, 83)
+    logo.BackgroundTransparency = 0.05
+    logo.BorderSizePixel = 0
+    logo.Text = "K5\nHUB"
+    logo.TextColor3 = Color3.fromRGB(220, 190, 255)
+    logo.TextSize = 15
+    logo.Font = Enum.Font.GothamBlack
+    logo.TextWrapped = true
+    logo.Parent = panel
+    local logoCorner = Instance.new("UICorner")
+    logoCorner.CornerRadius = UDim.new(0, 7)
+    logoCorner.Parent = logo
+
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, -68, 0, 20)
+    title.Position = UDim2.fromOffset(62, 5)
+    title.BackgroundTransparency = 1
+    title.BorderSizePixel = 0
+    title.Text = "K5-HUB IRONSOUL V2"
+    title.TextColor3 = Color3.fromRGB(245, 238, 255)
+    title.TextSize = 11
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.TextTruncate = Enum.TextTruncate.AtEnd
+    title.Parent = panel
+
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.Size = UDim2.new(1, -68, 0, 15)
+    subtitle.Position = UDim2.fromOffset(62, 23)
+    subtitle.BackgroundTransparency = 1
+    subtitle.BorderSizePixel = 0
+    subtitle.Text = "LOADER • MOBILE"
+    subtitle.TextColor3 = Color3.fromRGB(190, 175, 220)
+    subtitle.TextSize = 9
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    subtitle.TextTruncate = Enum.TextTruncate.AtEnd
+    subtitle.Parent = panel
+
     local label = Instance.new("TextLabel")
     label.Name = "Status"
-    label.Active = false
-    label.Selectable = false
-    label.Size = UDim2.new(0, 350, 0, 50)
-    label.Position = UDim2.new(0, 8, 0, 8)
-    label.BackgroundTransparency = 0.25
+    label.Size = UDim2.new(1, -68, 0, 19)
+    label.Position = UDim2.fromOffset(62, 39)
+    label.BackgroundTransparency = 1
     label.BorderSizePixel = 0
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.TextYAlignment = Enum.TextYAlignment.Center
-    label.TextWrapped = true
-    label.TextSize = 12
-    label.Font = Enum.Font.Code
-    label.Text = "K5-HUB IRONSOUL V2 | booting"
-    label.Parent = gui
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = label
+    label.TextWrapped = false
+    label.TextTruncate = Enum.TextTruncate.AtEnd
+    label.TextSize = 10
+    label.Font = Enum.Font.GothamMedium
+    label.TextColor3 = Color3.fromRGB(110, 255, 170)
+    label.Text = "Status: Booting..."
+    label.Parent = panel
+
     gui.Parent = pg
     statusLabel = label
+    statusTitle = title
     return label
 end
 
 local function status(message)
     local value = tostring(message or "")
-    if string.sub(value, 1, 5) == "ERROR" or string.sub(value, 1, 5) == "STUCK" then
+    local isError = string.sub(value, 1, 5) == "ERROR" or string.sub(value, 1, 5) == "STUCK"
+    if isError then
         stickyError = true
     elseif stickyError and string.sub(value, 1, 5) ~= "RESET" then
         return
     end
-    diag((string.sub(value, 1, 5) == "ERROR" or string.sub(value, 1, 5) == "STUCK") and "ERROR" or "STATUS", value)
+    diag(isError and "ERROR" or "STATUS", value)
     local label = ensureStatusGui()
-    if label then pcall(function() label.Text = "K5-HUB IRONSOUL V2 | " .. value end) end
+    if label then
+        pcall(function()
+            local display = value:gsub("[\r\n]+", " ")
+            if #display > 31 then display = string.sub(display, 1, 28) .. "..." end
+            label.Text = "Status: " .. display
+            label.TextColor3 = isError
+                and Color3.fromRGB(255, 115, 125)
+                or Color3.fromRGB(110, 255, 170)
+        end)
+    end
     if type(writefile) == "function" then
         pcall(writefile, "K5Hub_V2_Status.txt", table.concat({
             "Version=K5-HUB IRONSOUL V2",
@@ -251,7 +327,7 @@ local function status(message)
             "FireTouch=" .. tostring(Caps.FireTouch),
             "PlaceId=" .. tostring(game.PlaceId),
             "Status=" .. value,
-        }, "\n"))
+        }, "\\n"))
     end
 end
 getgenv().IronSoulStatus = status
