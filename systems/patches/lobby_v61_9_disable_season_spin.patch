@@ -1,22 +1,43 @@
 --- a/systems/lobby.lua
 +++ b/systems/lobby.lua
-@@ -1828,11 +1828,11 @@
+@@ -1828,15 +1828,29 @@
 -claimDailyQuest()
 -claimSeasonPass()
 -claimSevenDaily()
 -claimGuidebook()
 -claimUpdateLog()
-+-- Auto Claim disabled: do not claim Daily Quest rewards.
-+-- Auto Claim disabled: do not claim Season Pass rewards.
-+-- Auto Claim disabled: do not claim Seven Daily rewards.
-+-- Auto Claim disabled: do not claim Guidebook rewards.
-+-- Auto Claim disabled: do not claim Update Log rewards.
++local level = tonumber(LocalPlayer:GetAttribute("LG_Level"))
++if not level then
++    local okLevel, data = pcall(function()
++        return DataUtil:GetPlayerData(LocalPlayer)
++    end)
++    if okLevel and type(data) == "table" and type(data.LevelData) == "table" then
++        level = tonumber(data.LevelData.Level)
++    end
++end
++
++if level and level >= 40 then
++    claimDailyQuest()
++    claimSeasonPass()
++    claimSevenDaily()
++    claimGuidebook()
++    claimUpdateLog()
++else
++    important("Auto Claim waiting for Lv40 | current=" .. tostring(level or "unknown"))
++end
  
  local dailyLoginPending,
      dailyLoginRows =
          inspectDailyLogin()
  
--spendSeasonTickets()
-+-- Auto Claim/Season lottery disabled: preserve SeasonTicket; never auto-spin.
+--- Auto Claim/Season lottery disabled: preserve SeasonTicket; never auto-spin.
++-- Season lottery remains disabled; preserve SeasonTicket.
++-- Kick only after reward claims have been attempted at level 40.
++if level and level >= 40 then
++    task.wait(1)
++    pcall(function()
++        LocalPlayer:Kick("IronSoul: Lv40 rewards processed; leaving server.")
++    end)
++end
  
  local function writeRewardAudit()
