@@ -405,34 +405,62 @@ getgenv().IronSoulQueueBootstrap = queueBootstrap
 getgenv().IronSoulLoadRaw = loadRaw
 -- Intentionally do not queue on startup; run LOADER.lua manually each session/map.
 
+local function currentWorldName()
+    return string.lower(tostring(workspace:GetAttribute("WorldName") or ""))
+end
+
+local function looksLikeDisabledMode()
+    local name = currentWorldName()
+    -- Fail closed on side activities; only the lobby and dungeon routes are allowed.
+    return name:find("tower", 1, true) ~= nil
+        or name:find("trial", 1, true) ~= nil
+        or name:find("arena", 1, true) ~= nil
+        or name:find("pvp", 1, true) ~= nil
+        or name:find("raid", 1, true) ~= nil
+        or name:find("event", 1, true) ~= nil
+end
+
 local function looksLikeDungeon()
+    if looksLikeDisabledMode() then
+        return false
+    end
     local rs = game:GetService("ReplicatedStorage")
     local hasRound = rs:FindFirstChild("GameRoundCfg") ~= nil
-    local hasCombatWorld = workspace:FindFirstChild("RoundDoor")
-        or workspace:FindFirstChild("EnemyNpc")
-        or workspace:FindFirstChild("WorldEnemys")
+    local hasCombatWorld = workspace:FindFirstChild("RoundDoor") ~= nil
+        or workspace:FindFirstChild("EnemyNpc") ~= nil
+        or workspace:FindFirstChild("WorldEnemys") ~= nil
     return hasRound and hasCombatWorld
 end
 
 local route, routeName
-if game.PlaceId == LOBBY_PLACE_ID or workspace:GetAttribute("WorldName") == "Lobby" then
+if game.PlaceId == LOBBY_PLACE_ID or currentWorldName() == "lobby" then
     route, routeName = "systems/lobby.lua", "Lobby"
+elseif looksLikeDisabledMode() then
+    local message = "Side activity disabled | WorldName=" .. currentWorldName()
+        .. " | PlaceId=" .. tostring(game.PlaceId)
+    warn("[K5Hub V1] " .. message); status(message)
+    return
 elseif looksLikeDungeon() then
     route, routeName = "systems/combat.lua", "Dungeon"
 else
     for attempt = 1, 30 do
         task.wait(0.5)
-        if game.PlaceId == LOBBY_PLACE_ID or workspace:GetAttribute("WorldName") == "Lobby" then
+        if game.PlaceId == LOBBY_PLACE_ID or currentWorldName() == "lobby" then
             route, routeName = "systems/lobby.lua", "Lobby"
             break
+        elseif looksLikeDisabledMode() then
+            local message = "Side activity disabled | WorldName=" .. currentWorldName()
+                .. " | PlaceId=" .. tostring(game.PlaceId)
+            warn("[K5Hub V1] " .. message); status(message)
+            return
         elseif looksLikeDungeon() then
             route, routeName = "systems/combat.lua", "Dungeon"
             break
         end
     end
     if not route then
-        local message = "Unknown place after 15s | " .. tostring(game.PlaceId)
-            .. " | WorldName=" .. tostring(workspace:GetAttribute("WorldName"))
+        local message = "Non-dungeon place blocked after 15s | " .. tostring(game.PlaceId)
+            .. " | WorldName=" .. currentWorldName()
         warn("[K5Hub V1] " .. message); status(message)
         return
     end
