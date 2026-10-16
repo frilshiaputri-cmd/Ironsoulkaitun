@@ -222,6 +222,17 @@ local function status(message)
         return
     end
     diag(isError and "ERROR" or "STATUS", value)
+
+    -- Legacy compact announcement: use Roblox's native toast, not an on-screen table.
+    local StarterGui = game:GetService("StarterGui")
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = isError and "K5-Hub V2 | ERROR" or "K5-Hub V2",
+            Text = value,
+            Duration = isError and 8 or 4,
+        })
+    end)
+
     if type(writefile) == "function" then
         pcall(writefile, "K5Hub_V2_Status.txt", table.concat({
             "Version=K5-Hub V2",
