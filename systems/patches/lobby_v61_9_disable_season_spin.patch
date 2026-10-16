@@ -1,6 +1,6 @@
 --- a/systems/lobby.lua
 +++ b/systems/lobby.lua
-@@ -406,24 +406,28 @@
+@@ -406,25 +406,16 @@
 -local queue =
 -    queue_on_teleport
 -    or (
@@ -42,7 +42,7 @@
 +    end
 +end
 +
-@@ -1828,15 +1832,30 @@
+@@ -1828,15 +1819,30 @@
 -claimDailyQuest()
 -claimSeasonPass()
 -claimSevenDaily()
