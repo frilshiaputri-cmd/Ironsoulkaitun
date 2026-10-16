@@ -188,6 +188,27 @@ getgenv().IronSoulExecutorCaps = Caps
 getgenv().IronSoulTeleportQueueAvailable = Caps.Queue
 getgenv().IronSoulManualQueueMode = not Caps.Queue
 
+-- Remove any leftover green master-toggle overlay from older V2 sessions.
+task.spawn(function()
+    local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui", 10)
+    if not pg then return end
+    for _, child in ipairs(pg:GetChildren()) do
+        if child.Name == "K5MasterToggleGui" then
+            pcall(function() child:Destroy() end)
+        elseif child:IsA("ScreenGui") then
+            for _, item in ipairs(child:GetDescendants()) do
+                if item:IsA("TextButton") and item.Name == "MasterToggle" then
+                    local txt = tostring(item.Text or "")
+                    if string.find(txt, "K5%-HUB V2") then
+                        pcall(function() child:Destroy() end)
+                        break
+                    end
+                end
+            end
+        end
+    end
+end)
+
 local statusLabel = nil
 local statusPanel = nil
 local statusLogo = nil
