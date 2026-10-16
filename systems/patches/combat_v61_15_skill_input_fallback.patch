@@ -27,10 +27,7 @@
      end
  
 +    local button = Callbacks[action .. "Button"]
-+    local keyName = action == "Skill1" and "Q"
-+        or action == "Skill2" and "E"
-+        or action == "SkillU" and "R"
-+        or nil
++    -- Mobile-first: activate the game's on-screen skill button.
 +
      -- Allow native skill visual briefly if desired; basic attack visuals
      -- remain suppressed.
@@ -41,28 +38,22 @@
 -        pcall(fn)
 +    local ok, err = false, "no GUI button or callback"
 +
-+    -- Trigger the actual button press/release before falling back to the
-+    -- captured callback. This mirrors the recommendation script's input path.
++    -- Mobile-first: fire the on-screen button signals. Do not send PC keys.
 +    if button and button.Parent and type(firesignal) == "function" then
-+        local downOk = pcall(firesignal, button.MouseButton1Down)
-+        task.wait(0.02)
-+        local upOk = pcall(firesignal, button.MouseButton1Up)
-+        ok = downOk and upOk
-+        if not ok then
-+            err = "GUI button down/up failed"
++        if button.Activated then
++            ok, err = pcall(firesignal, button.Activated)
 +        end
-+    end
-+
-+    if not ok and keyName then
-+        local vimOk, vim = pcall(function()
-+            return game:GetService("VirtualInputManager")
-+        end)
-+        if vimOk and vim and Enum and Enum.KeyCode[keyName] then
-+            ok, err = pcall(function()
-+                vim:SendKeyEvent(true, Enum.KeyCode[keyName], false, game)
-+                task.wait(0.03)
-+                vim:SendKeyEvent(false, Enum.KeyCode[keyName], false, game)
-+            end)
++        if not ok and button.MouseButton1Click then
++            ok, err = pcall(firesignal, button.MouseButton1Click)
++        end
++        if not ok and button.MouseButton1Down and button.MouseButton1Up then
++            local downOk = pcall(firesignal, button.MouseButton1Down)
++            task.wait(0.04)
++            local upOk = pcall(firesignal, button.MouseButton1Up)
++            ok = downOk and upOk
++            if not ok then
++                err = "GUI touch-button activation failed"
++            end
 +        end
 +    end
 +
