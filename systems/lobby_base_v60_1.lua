@@ -1827,15 +1827,44 @@ local function spendSeasonTickets()
     end
 end
 
-claimDailyQuest()
-claimSeasonPass()
-claimSevenDaily()
-claimGuidebook()
-claimUpdateLog()
+-- Level gate: daily/reward claims only at Lv40.
+local rewardLevel = tonumber(LocalPlayer:GetAttribute("LG_Level"))
+if not rewardLevel then
+    local okLevel, playerData = pcall(function()
+        return pdata()
+    end)
+    if okLevel and type(playerData) == "table" then
+        local levelData = playerData.LevelData
+        if type(levelData) == "table" then
+            rewardLevel = tonumber(levelData.Level)
+        end
+        rewardLevel = rewardLevel or tonumber(playerData.Level)
+    end
+end
+
+local rewardClaimsAttempted = false
+if rewardLevel and rewardLevel >= 40 then
+    rewardClaimsAttempted = true
+    claimDailyQuest()
+    claimSeasonPass()
+    claimSevenDaily()
+    claimGuidebook()
+    claimUpdateLog()
+else
+    important("Auto Claim waiting for Lv40 | current=" .. tostring(rewardLevel or "unknown"))
+end
 
 local dailyLoginPending,
     dailyLoginRows =
         inspectDailyLogin()
+
+-- Kick only after all Lv40 reward-claim functions above have been attempted.
+if rewardClaimsAttempted then
+    task.wait(2)
+    pcall(function()
+        LocalPlayer:Kick("IronSoul: Lv40 daily/reward claims attempted; leaving server.")
+    end)
+end
 
 -- AUTO SEASON SPIN DISABLED: keep SeasonTicket balance untouched.
 -- spendSeasonTickets()
