@@ -62,7 +62,7 @@ local LOBBY_PLACE_ID = 117533937949084
 
 -- Level-cap monitor is handled directly by this bootstrap; no auto_redeem_v2 module is used.
 local LEVEL_STOP = tonumber(Config.LEVEL_STOP)
-if LEVEL_STOP == nil then LEVEL_STOP = 30 end
+if LEVEL_STOP == nil then LEVEL_STOP = 40 end
 
 if LEVEL_STOP > 0 then
     task.spawn(function()
@@ -108,10 +108,10 @@ if LEVEL_STOP > 0 then
                     getgenv().IronSoulConfig.FARM = "OFF"
                 end
                 diag("INFO", "Level cap reached (" .. tostring(level) .. "); Auto Redeem disabled; kicking player")
-                warn("[IronSoul] Level 30 reached; Auto Redeem is disabled. Leaving server.")
+                warn("[IronSoul] Level 40 reached; Auto Redeem is disabled. Leaving server.")
                 task.wait(1)
                 pcall(function()
-                    LocalPlayer:Kick("Level 30 tercapai. Auto Redeem nonaktif; keluar dari server.")
+                    LocalPlayer:Kick("Level 40 tercapai. Auto Redeem nonaktif; keluar dari server.")
                 end)
                 break
             end
@@ -521,7 +521,7 @@ fn()
         tostring(config.TICKETS or "SMART"),
         tostring(config.HEADLESS ~= false),
         tostring(config.DEBUG_LOGS == true),
-        tostring(tonumber(config.LEVEL_STOP) or 30),
+        tostring(tonumber(config.LEVEL_STOP) or 40),
         BASE .. "bootstrap_v2.lua"
     )
 
