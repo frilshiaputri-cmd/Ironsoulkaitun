@@ -1,5 +1,5 @@
---- a/systems/lobby_base_v60_1.lua
-+++ b/systems/lobby_base_v60_1.lua
+--- a/systems/lobby.lua
++++ b/systems/lobby.lua
 @@ -406,25 +406,16 @@
 -local queue =
 -    queue_on_teleport
