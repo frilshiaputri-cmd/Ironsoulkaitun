@@ -169,8 +169,8 @@ do
             getgenv().IronSoulConfig.FARM = "OFF"
         end
         status("LEVEL CAP | Lv" .. tostring(finalLevel) .. "/" .. tostring(cap) .. " | stay in lobby; dungeon queue blocked")
-        -- Do not kick. Keep the player in the lobby and prevent dungeon scheduling.
-        return false
+        -- Keep lobby maintenance running so level-40 reward claims can complete.
+        -- Combat remains blocked by IronSoulLevelStopReached.
     end
 end
 
