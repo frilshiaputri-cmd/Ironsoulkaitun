@@ -185,48 +185,7 @@ do
     end
 end
 
--- Every cross-place continuation goes through the stable entry so 24/7 sessions
--- automatically pick up future fixes instead of remaining pinned to an old boot.
-do
-    local queue = rawget(getgenv(), "queue_on_teleport")
-    if type(queue) == "function" then
-        getgenv().IronSoulQueueBootstrap = function(reason)
-            local config = getgenv().IronSoulConfig or {}
-            local payload = string.format([[
-task.wait(1.35)
-getgenv().IronSoulConfig = getgenv().IronSoulConfig or {
-    FPS_CAP = %s,
-    FARM = %q,
-    TICKETS = %q,
-    HEADLESS = %s,
-    DEBUG_LOGS = %s,
-    LEVEL_STOP = 40,
-}
-local source = game:HttpGet(%q .. "?t=" .. tostring(os.time()))
-local fn, err = loadstring(source)
-assert(fn, err)
-fn()
-]],
-                tostring(tonumber(config.FPS_CAP) or 8),
-                tostring(config.FARM or "NEWBIE"),
-                tostring(config.TICKETS or "SMART"),
-                tostring(config.HEADLESS ~= false),
-                tostring(config.DEBUG_LOGS == true),
-                BASE .. "bootstrap_v2.lua"
-            )
-
-            local ok, result = pcall(queue, payload)
-            if ok and result ~= false then
-                status("Queued stable bootstrap | " .. tostring(reason or "next teleport"))
-                return true
-            end
-
-            local detail = ok and "native queue unavailable" or tostring(result)
-            status("Manual continuation required | " .. detail .. " | run LOADER_V2.lua after teleport")
-            return false
-        end
-    end
-end
+-- Preserve the canonical queueBootstrap created by bootstrap_v2.lua.
 
 local function getPatcher()
     local loadRaw = getgenv().IronSoulLoadRaw
