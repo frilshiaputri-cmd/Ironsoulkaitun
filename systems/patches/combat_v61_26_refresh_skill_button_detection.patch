@@ -1,27 +1,13 @@
 --- a/systems/combat.lua
 +++ b/systems/combat.lua
-@@ -2270,6 +2270,17 @@
-     if action == "Skill2" then
-         return n == "skill2"
-             or string.find(
-                 n,
-                 "skill2",
-                 1,
-                 true
-             )
+@@ -2330,5 +2330,6 @@
              ~= nil
+             or string.find(n, "ultimate", 1, true)
+                 ~= nil
++            or string.find(n, "skill3", 1, true) ~= nil
      end
  
-+    if action == "SkillU" then
-+        return n == "skillu"
-+            or string.find(n, "skillu", 1, true) ~= nil
-+            or string.find(n, "ultimate", 1, true) ~= nil
-+            or string.find(n, "skill3", 1, true) ~= nil
-+    end
-+
-     return false
- end
-@@ -2440,7 +2451,23 @@
+@@ -2440,7 +2440,23 @@
      local button = Callbacks[action .. "Button"]
      -- Mobile-first: activate the game's on-screen skill button.
  
