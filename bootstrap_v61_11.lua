@@ -109,12 +109,9 @@ if LEVEL_STOP > 0 then
                 if type(getgenv().IronSoulConfig) == "table" then
                     getgenv().IronSoulConfig.FARM = "OFF"
                 end
-                diag("INFO", "Level cap reached (" .. tostring(level) .. "); leaving server")
-                warn("[IronSoul] Level 40 reached; leaving the server.")
-                task.wait(1)
-                pcall(function()
-                    LocalPlayer:Kick("Level 40 tercapai. Keluar otomatis dari server.")
-                end)
+                diag("INFO", "Level cap reached (" .. tostring(level) .. "); farm stopped; waiting for lobby reward processing")
+                warn("[IronSoul] Level 40 reached; farming stopped. Lobby reward processing will handle exit.")
+                -- Do not kick here; allow lobby rewards to process first.
                 break
             end
             task.wait(0.5)
