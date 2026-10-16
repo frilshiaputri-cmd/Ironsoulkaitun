@@ -36,9 +36,7 @@ do
         if type(getgenv().IronSoulConfig) == "table" then
             getgenv().IronSoulConfig.FARM = "OFF"
         end
-        pcall(function()
-            player:Kick("IronSoul stopped: level limit reached (Lv" .. tostring(level) .. "/" .. tostring(cap) .. ").")
-        end)
+        -- Do not kick here: the lobby reward handler must run first.
         return false
     end
 end
