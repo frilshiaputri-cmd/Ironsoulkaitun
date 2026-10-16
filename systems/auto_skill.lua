@@ -1,7 +1,7 @@
 -- K5-HUB IRONSOUL V2 - Auto skill port from IronForge_AutoFarm_PremiumUI_v6_STABLE
--- Source behavior: press E, Q, R with per-skill cooldowns while this combat module is active.
--- This deliberately does not claim touch-screen support: VirtualInputManager key events
--- may not trigger mobile GUI skill buttons in Delta Android.
+-- Preserves source behavior: E/Q/R key events, 0.70/0.70/1.50 cooldowns,
+-- and a 2.50-second skill cycle while a living enemy target is nearby.
+-- Delta Android may not route VirtualInputManager keyboard events to mobile skill buttons.
 
 local started = false
 
@@ -15,24 +15,47 @@ return function()
 
     local cooldowns = { Q = 0, E = 0, R = 0 }
     local cooldownConfig = { Q = 0.70, E = 0.70, R = 1.50 }
+    local skillInterval = 2.50
+
+    local function hasNearbyTarget()
+        local character = player and player.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        if not root then return false end
+
+        for _, model in ipairs(workspace:GetDescendants()) do
+            if model:IsA("Model") and model ~= character then
+                local humanoid = model:FindFirstChildOfClass("Humanoid")
+                local targetRoot = model:FindFirstChild("HumanoidRootPart")
+                    or model.PrimaryPart
+                if humanoid and humanoid.Health > 0 and targetRoot
+                    and not Players:GetPlayerFromCharacter(model) then
+                    if (targetRoot.Position - root.Position).Magnitude <= 600 then
+                        return true
+                    end
+                end
+            end
+        end
+        return false
+    end
 
     local function pressKey(keyName)
         local keyCode = Enum.KeyCode[keyName]
         if not keyCode then return false end
 
-        local ok = pcall(function()
+        return pcall(function()
             VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
             task.wait(0.02)
             VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
         end)
-        return ok
     end
 
     task.spawn(function()
         while player and player.Parent do
-            -- This module is loaded by systems/combat.lua only, so it stays out of lobby flow.
+            local config = getgenv().IronSoulConfig or {}
             if not getgenv().IronSoulLevelStopReached
-                and (getgenv().IronSoulConfig or {}).FARM ~= "OFF" then
+                and config.FARM ~= "OFF"
+                and config.AutoSkill ~= false
+                and hasNearbyTarget() then
                 local now = os.clock()
                 for _, key in ipairs({"E", "Q", "R"}) do
                     if now >= (cooldowns[key] or 0) then
@@ -42,7 +65,7 @@ return function()
                     end
                 end
             end
-            task.wait(0.10)
+            task.wait(skillInterval)
         end
     end)
 end
