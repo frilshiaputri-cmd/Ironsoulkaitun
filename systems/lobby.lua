@@ -218,7 +218,7 @@ loadstring(game:HttpGet(%q .. "?t=" .. tostring(os.time())))()
             end
 
             local detail = ok and "native queue unavailable" or tostring(result)
-            status("Manual continuation required | " .. detail .. " | run LOADER.lua after teleport")
+            status("Manual continuation required | " .. detail .. " | run LOADER_V2.lua after teleport")
             return false
         end
     end
