@@ -42,7 +42,7 @@
 +    end
 +end
 +
-+@@ -1828,15 +1832,30 @@
+@@ -1828,15 +1832,30 @@
 -claimDailyQuest()
 -claimSeasonPass()
 -claimSevenDaily()
