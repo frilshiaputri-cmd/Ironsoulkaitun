@@ -1,6 +1,48 @@
 --- a/systems/lobby.lua
 +++ b/systems/lobby.lua
-@@ -1828,15 +1828,29 @@
+@@ -406,24 +406,28 @@
+-local queue =
+-    queue_on_teleport
+-    or (
+-        syn
+-        and syn.queue_on_teleport
+-    )
+-
+-if type(queue)
+-        ~= "function"
+-then
+-    return stop(
+-        "V59 requires queue_on_teleport for continuous progression."
+-    )
+-end
+-
+-local queueBootstrap =
+-    getgenv().IronSoulQueueBootstrap
+-
+-if type(queueBootstrap)
+-        ~= "function"
+-then
+-    return stop(
+-        "V59 bootstrap queue helper missing."
+-    )
+-end
++local atLevelCap = getgenv().IronSoulLevelStopReached == true
++    or (tonumber(LocalPlayer:GetAttribute("LG_Level")) or 0) >= 40
++
++if not atLevelCap then
++    local queue =
++        queue_on_teleport
++        or (syn and syn.queue_on_teleport)
++    if type(queue) ~= "function" then
++        return stop("V59 requires queue_on_teleport for continuous progression.")
++    end
++    local queueBootstrap = getgenv().IronSoulQueueBootstrap
++    if type(queueBootstrap) ~= "function" then
++        return stop("V59 bootstrap queue helper missing.")
++    end
++end
++
++@@ -1828,15 +1832,30 @@
 -claimDailyQuest()
 -claimSeasonPass()
 -claimSevenDaily()
@@ -38,6 +80,7 @@
 +    pcall(function()
 +        LocalPlayer:Kick("IronSoul: Lv40 rewards processed; leaving server.")
 +    end)
++    return
 +end
  
  local function writeRewardAudit()
