@@ -210,7 +210,7 @@ local function ensureStatusGui()
 
     local panel = Instance.new("Frame")
     panel.Name = "CompactPanel"
-    panel.Size = UDim2.fromOffset(292, 88)
+    panel.Size = UDim2.fromOffset(350, 88)
     panel.Position = UDim2.new(0, 7, 0, 7)
     panel.BackgroundColor3 = Color3.fromRGB(15, 12, 35)
     panel.BackgroundTransparency = 0.12
@@ -298,7 +298,7 @@ local function ensureStatusGui()
             subtitle.Visible = false
             label.Visible = false
         else
-            panel.Size = UDim2.fromOffset(292, 88)
+            panel.Size = UDim2.fromOffset(350, 88)
             logo.Size = UDim2.fromOffset(53, 76)
             logo.Position = UDim2.fromOffset(5, 6)
             title.Visible = true
@@ -327,7 +327,7 @@ local function status(message)
     if label then
         pcall(function()
             local display = value:gsub("[\\r\\n]+", " ")
-            if #display > 105 then display = string.sub(display, 1, 102) .. "..." end
+            if #display > 155 then display = string.sub(display, 1, 152) .. "..." end
             label.Text = "Status: " .. display
             label.TextColor3 = isError
                 and Color3.fromRGB(255, 115, 125)
