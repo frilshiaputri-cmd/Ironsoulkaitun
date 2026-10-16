@@ -1837,7 +1837,8 @@ local dailyLoginPending,
     dailyLoginRows =
         inspectDailyLogin()
 
-spendSeasonTickets()
+-- AUTO SEASON SPIN DISABLED: keep SeasonTicket balance untouched.
+-- spendSeasonTickets()
 
 local function writeRewardAudit()
     if type(writefile)
