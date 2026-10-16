@@ -62,9 +62,9 @@ local LOBBY_PLACE_ID = 117533937949084
 -- AUTO REDEEM DISABLED: the auto_redeem.lua module is intentionally not loaded.
 getgenv().IronSoulAutoRedeemEnabled = false
 
--- At level 30, stop farming and leave the current server.
+-- At level 40, stop farming and leave the current server.
 local LEVEL_STOP = tonumber(Config.LEVEL_STOP)
-if LEVEL_STOP == nil then LEVEL_STOP = 30 end
+if LEVEL_STOP == nil then LEVEL_STOP = 40 end
 
 if LEVEL_STOP > 0 then
     task.spawn(function()
@@ -110,10 +110,10 @@ if LEVEL_STOP > 0 then
                     getgenv().IronSoulConfig.FARM = "OFF"
                 end
                 diag("INFO", "Level cap reached (" .. tostring(level) .. "); leaving server")
-                warn("[IronSoul] Level 30 reached; leaving the server.")
+                warn("[IronSoul] Level 40 reached; leaving the server.")
                 task.wait(1)
                 pcall(function()
-                    LocalPlayer:Kick("Level 30 tercapai. Keluar otomatis dari server.")
+                    LocalPlayer:Kick("Level 40 tercapai. Keluar otomatis dari server.")
                 end)
                 break
             end
@@ -389,7 +389,7 @@ fn()
         tostring(config.TICKETS or "SMART"),
         tostring(config.HEADLESS ~= false),
         tostring(config.DEBUG_LOGS == true),
-        tostring(tonumber(config.LEVEL_STOP) or 30),
+        tostring(tonumber(config.LEVEL_STOP) or 40),
         BASE .. "bootstrap.lua"
     )
 
