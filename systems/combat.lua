@@ -1,6 +1,6 @@
 -- IRON SOUL - V61.21 COMBAT ENTRY
 
--- HARD LEVEL CAP: do not start or continue dungeon combat at level 30+.
+-- HARD LEVEL CAP: do not start or continue dungeon combat at the configured level limit (default 40).
 -- bootstrap_v61_11 also monitors this while the dungeon is running.
 do
     if getgenv().IronSoulLevelStopReached then
@@ -10,7 +10,7 @@ do
     local Players = game:GetService("Players")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local player = Players.LocalPlayer
-    local cap = tonumber((getgenv().IronSoulConfig or {}).LEVEL_STOP) or 30
+    local cap = tonumber((getgenv().IronSoulConfig or {}).LEVEL_STOP) or 40
     local level = tonumber(player:GetAttribute("LG_Level"))
 
     if not level then
