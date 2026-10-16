@@ -1,5 +1,5 @@
 --========================================================--
--- K5HUB V1 - MOBILE/STABLE BOOT WITH DIAGNOSTICS
+-- K5-HUB IRONSOUL V2 - COMPACT MOBILE BOOT WITH DIAGNOSTICS
 --========================================================--
 
 getgenv().IronSoulConfig =
@@ -572,7 +572,7 @@ local function queueBootstrap(reason)
     end
     if type(RealQueue) ~= "function" then
         getgenv().IronSoulManualExecutionOnly = true
-        status("Teleport continuation unavailable | executor has no native queue; run LOADER.lua manually after teleport")
+        status("Teleport continuation unavailable | executor has no native queue; run LOADER_V2.lua manually after teleport")
         return false
     end
 
@@ -623,7 +623,7 @@ task.spawn(function()
         diag("ERROR", "Performance Booster failed: " .. tostring(perfErr))
     end
 end)
--- Intentionally do not queue on startup; run LOADER.lua manually each session/map.
+-- Intentionally do not queue on startup; run LOADER_V2.lua manually each session/map.
 
 local function looksLikeDungeon()
     local rs = game:GetService("ReplicatedStorage")
