@@ -448,9 +448,10 @@ local function queueBootstrap(reason)
         return false
     end
 
-    -- Re-detect the executor API at queue time. Some mobile executors expose
-    -- the queue only through their environment table or alias.
-    local queueFn, queueName = findRealTeleportQueue()
+    -- Use the original executor queue captured before installing the
+    -- compatibility wrapper. Re-detecting here could find our own wrapper
+    -- and recursively queue itself instead of calling Delta's native API.
+    local queueFn, queueName = RealQueue, RealQueueName
     if type(queueFn) ~= "function" then
         getgenv().IronSoulManualExecutionOnly = true
         status("Teleport continuation unavailable | no native queue API detected; run LOADER_V2.lua after teleport")
