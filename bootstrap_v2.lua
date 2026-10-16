@@ -493,6 +493,28 @@ fn()
     status("Teleport continuation queued via " .. tostring(queueName) .. " | " .. tostring(reason or "cross-place transition"))
     return true
 end
+-- Redirect legacy lobby queue requests to the V2 continuation payload.
+-- The native executor queue was captured before this compatibility alias, so
+-- this wrapper cannot recursively call itself or accidentally queue V1.
+local function v2QueueCompatibility(_legacyPayload)
+    if getgenv().IronSoulMasterEnabled == false then
+        status("MASTER OFF | legacy teleport queue blocked")
+        return false
+    end
+    if getgenv().IronSoulNoAutoContinue == true
+        or getgenv().IronSoulLevelStopReached == true
+    then
+        getgenv().IronSoulManualExecutionOnly = true
+        status("LEVEL STOP | legacy teleport queue blocked")
+        return false
+    end
+    return queueBootstrap("legacy lobby queue redirected to V2")
+end
+
+pcall(function()
+    rawset(getgenv(), "queue_on_teleport", v2QueueCompatibility)
+end)
+
 getgenv().IronSoulBaseURL = BASE
 getgenv().IronSoulQueueBootstrap = queueBootstrap
 getgenv().IronSoulLoadRaw = loadRaw
