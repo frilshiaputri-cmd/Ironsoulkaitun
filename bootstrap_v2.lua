@@ -426,9 +426,13 @@ local function queueBootstrap(reason)
         status("MASTER OFF | teleport continuation not queued")
         return false
     end
-    if type(RealQueue) ~= "function" then
+
+    -- Re-detect the executor API at queue time. Some mobile executors expose
+    -- the queue only through their environment table or alias.
+    local queueFn, queueName = findRealTeleportQueue()
+    if type(queueFn) ~= "function" then
         getgenv().IronSoulManualExecutionOnly = true
-        status("Teleport continuation unavailable | executor has no native queue; run LOADER_V2.lua manually after teleport")
+        status("Teleport continuation unavailable | no native queue API detected; run LOADER_V2.lua after teleport")
         return false
     end
 
@@ -457,14 +461,14 @@ fn()
         BASE .. "bootstrap_v2.lua"
     )
 
-    local ok, err = pcall(RealQueue, payload)
-    if not ok then
-        status("ERROR | teleport continuation queue failed | " .. tostring(err))
+    local ok, err = pcall(queueFn, payload)
+    if not ok or err == false then
+        status("ERROR | teleport continuation queue failed via " .. tostring(queueName) .. " | " .. tostring(err))
         return false
     end
 
     getgenv().IronSoulManualExecutionOnly = false
-    status("Teleport continuation queued | " .. tostring(reason or "cross-place transition"))
+    status("Teleport continuation queued via " .. tostring(queueName) .. " | " .. tostring(reason or "cross-place transition"))
     return true
 end
 getgenv().IronSoulBaseURL = BASE
