@@ -161,7 +161,7 @@ status("Lobby PlayerData ready | Lv" .. tostring(finalLevel) .. " via " .. tostr
 -- HARD LEVEL CAP: never schedule another dungeon when the player is already
 -- at the configured level limit. The bootstrap monitor handles level-ups mid-run.
 do
-    local cap = tonumber((getgenv().IronSoulConfig or {}).LEVEL_STOP) or 40
+    local cap = tonumber((getgenv().IronSoulConfig or {}).LEVEL_STOP) or 30
     if cap > 0 and tonumber(finalLevel) and tonumber(finalLevel) >= cap then
         getgenv().IronSoulLevelStopReached = true
         getgenv().IronSoulLevelStopLevel = tonumber(finalLevel)
@@ -169,7 +169,7 @@ do
             getgenv().IronSoulConfig.FARM = "OFF"
         end
         status("LEVEL CAP | Lv" .. tostring(finalLevel) .. "/" .. tostring(cap) .. " | stay in lobby; dungeon queue blocked")
-        -- Keep lobby maintenance running so level-40 reward claims can complete.
+        -- Keep lobby maintenance running so level-30 reward claims can complete.
         -- Combat remains blocked by IronSoulLevelStopReached.
     end
 end
@@ -185,7 +185,7 @@ do
     end
 end
 
--- Preserve the canonical queueBootstrap created by bootstrap_v2.lua.
+-- Preserve the canonical queueBootstrap created by bootstrap_v4.lua.
 
 local function getPatcher()
     local loadRaw = getgenv().IronSoulLoadRaw
@@ -223,9 +223,5 @@ if patcherOk and patchedLobby ~= nil then
     return patchedLobby
 end
 
-status("PATCH WARNING | lobby patches incompatible; loading base lobby module")
-local fallbackUrl = BASE .. "systems/lobby_base_v60_1.lua?t=" .. tostring(os.time())
-local fallbackSource = game:HttpGet(fallbackUrl)
-local fallbackFn, fallbackErr = loadstring(fallbackSource)
-assert(fallbackFn, "lobby fallback compile failed: " .. tostring(fallbackErr))
-return fallbackFn()
+status("PATCH ERROR | season-spin safety patch failed; lobby automation blocked")
+return stop("V4 safety: refusing unpatched lobby module to prevent accidental season spin or auto-claim.")
