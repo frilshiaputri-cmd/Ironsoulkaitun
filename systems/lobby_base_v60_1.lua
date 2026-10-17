@@ -1559,6 +1559,9 @@ local function claimGuidebook()
 end
 
 local function claimUpdateLog()
+    -- V2 setting: automatic Update Log claims are intentionally disabled.
+    -- Keep UpdateLog inspection/audit code below for reporting only.
+    return
     if not UpdateLogUtil
         or type(
             UpdateLogUtil.ClaimReward
