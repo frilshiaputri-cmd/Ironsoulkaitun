@@ -27,7 +27,7 @@
 -    )
 -end
 +local atLevelCap = getgenv().IronSoulLevelStopReached == true
-+    or (tonumber(LocalPlayer:GetAttribute("LG_Level")) or 0) >= 40
++    or (tonumber(LocalPlayer:GetAttribute("LG_Level")) or 0) >= 30
 +
 +if not atLevelCap then
 +    local queue =
@@ -42,46 +42,31 @@
 +    end
 +end
 +
-@@ -1828,15 +1819,30 @@
+@@ -1828,15 +1819,13 @@
 -claimDailyQuest()
 -claimSeasonPass()
 -claimSevenDaily()
 -claimGuidebook()
 -claimUpdateLog()
-+local level = tonumber(LocalPlayer:GetAttribute("LG_Level"))
-+if not level then
-+    local okLevel, data = pcall(function()
-+        return DataUtil:GetPlayerData(LocalPlayer)
-+    end)
-+    if okLevel and type(data) == "table" and type(data.LevelData) == "table" then
-+        level = tonumber(data.LevelData.Level)
-+    end
-+end
-+
-+if level and level >= 40 then
-+    claimDailyQuest()
-+    claimSeasonPass()
-+    claimSevenDaily()
-+    claimGuidebook()
-+    -- claimUpdateLog() -- disabled by request
-+else
-+    important("Auto Claim waiting for Lv40 | current=" .. tostring(level or "unknown"))
-+end
++-- V4: disable every automatic reward claim.
++-- claimDailyQuest(), claimSeasonPass(), claimSevenDaily(),
++-- claimGuidebook(), and claimUpdateLog() are intentionally never called.
  
  local dailyLoginPending,
      dailyLoginRows =
          inspectDailyLogin()
  
 --- Auto Claim/Season lottery disabled: preserve SeasonTicket; never auto-spin.
-+-- Season lottery remains disabled; preserve SeasonTicket.
-+-- Kick only after reward claims have been attempted at level 40.
-+if level and level >= 40 then
-+    task.wait(1)
-+    pcall(function()
-+        LocalPlayer:Kick("IronSoul: Lv40 rewards processed; leaving server.")
-+    end)
-+    return
-+end
++-- Auto Claim/Season lottery disabled: preserve SeasonTicket; never auto-spin.
+ -- Kick only after reward claims have been attempted at level 40.
+-if level and level >= 40 then
+-    task.wait(1)
+-    pcall(function()
+-        LocalPlayer:Kick("IronSoul: Lv40 rewards processed; leaving server.")
+-    end)
+-    return
+-end
++-- V4: no automatic kick for reward processing.
  
  local function writeRewardAudit()
 @@ -1837,7 +1852,7 @@
