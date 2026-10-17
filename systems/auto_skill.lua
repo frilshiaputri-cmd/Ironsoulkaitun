@@ -49,6 +49,25 @@ return function()
         end)
     end
 
+    -- Ported from the user's IronHub.txt: after a skill cycle, equip the
+    -- next available Tool from Backpack. Do not touch lobby equipment remotes.
+    local function switchToNextWeapon()
+        local backpack = player and player:FindFirstChildOfClass("Backpack")
+        local character = player and player.Character
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        if not backpack or not humanoid then return false end
+
+        for _, item in ipairs(backpack:GetChildren()) do
+            if item:IsA("Tool") then
+                local ok = pcall(function()
+                    humanoid:EquipTool(item)
+                end)
+                if ok then return true end
+            end
+        end
+        return false
+    end
+
     task.spawn(function()
         while player and player.Parent do
             local config = getgenv().IronSoulConfig or {}
@@ -57,12 +76,21 @@ return function()
                 and config.AutoSkill ~= false
                 and hasNearbyTarget() then
                 local now = os.clock()
+                local usedAnySkill = false
                 for _, key in ipairs({"E", "Q", "R"}) do
                     if now >= (cooldowns[key] or 0) then
-                        pressKey(key)
+                        local pressed = pressKey(key)
+                        if pressed then usedAnySkill = true end
                         cooldowns[key] = now + cooldownConfig[key]
                         task.wait(0.15)
                     end
+                end
+
+                -- Match IronHub.txt behavior: switch weapon after skill use.
+                -- A short pause prevents overlapping the equip with skill input.
+                if usedAnySkill and config.AutoSwitchWeapon ~= false then
+                    switchToNextWeapon()
+                    task.wait(0.3)
                 end
             end
             task.wait(skillInterval)
