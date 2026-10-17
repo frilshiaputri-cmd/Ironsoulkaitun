@@ -16,7 +16,7 @@ getgenv().IronSoulConfig = {
 
 local ok, result = pcall(function()
     local source = game:HttpGet(
-        "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/bootstrap_v4.lua?t="
+        "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/v4-level30-no-auto-claim/bootstrap_v4.lua?t="
             .. tostring(os.time())
     )
     local fn, err = loadstring(source)
