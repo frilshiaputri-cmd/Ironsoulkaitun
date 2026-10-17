@@ -107,26 +107,23 @@ if LEVEL_STOP > 0 then
                 if type(getgenv().IronSoulConfig) == "table" then
                     getgenv().IronSoulConfig.FARM = "OFF"
                 end
-                diag("INFO", "Level cap reached (" .. tostring(level) .. "); farming stopped; disable teleport queue")
+                diag("INFO", "Level cap reached (" .. tostring(level) .. "); farming stopped; auto-continuation disabled; kicking player")
                 getgenv().IronSoulNoAutoContinue = true
                 getgenv().IronSoulManualExecutionOnly = true
                 pcall(function()
                     game:GetService("StarterGui"):SetCore("SendNotification", {
                         Title = "K5-Hub V4",
-                        Text = "Level 30 tercapai. Farming berhenti; kembali ke lobby. Klaim otomatis nonaktif.",
-                        Duration = 6,
+                        Text = "Level 30 tercapai. Keluar otomatis dari server; Auto Claim tetap nonaktif.",
+                        Duration = 3,
                     })
                 end)
-                if game.PlaceId ~= LOBBY_PLACE_ID and workspace:GetAttribute("WorldName") ~= "Lobby" then
-                    local teleported = pcall(function()
-                        game:GetService("TeleportService"):Teleport(LOBBY_PLACE_ID, LocalPlayer)
-                    end)
-                    diag(teleported and "INFO" or "ERROR", teleported
-                        and "Requested return to lobby at level cap"
-                        or "Failed to request lobby teleport at level cap")
-                else
-                    diag("INFO", "Already in lobby at level cap; leave lobby reward maintenance available")
-                end
+                task.wait(0.4)
+                local kickOk, kickErr = pcall(function()
+                    LocalPlayer:Kick("K5-Hub V4: batas level 30 tercapai.")
+                end)
+                diag(kickOk and "INFO" or "ERROR", kickOk
+                    and "LocalPlayer:Kick invoked at level cap"
+                    or "LocalPlayer:Kick failed at level cap: " .. tostring(kickErr))
                 break
             end
             task.wait(0.5)
@@ -454,7 +451,7 @@ local function queueBootstrap(reason)
     local queueFn, queueName = RealQueue, RealQueueName
     if type(queueFn) ~= "function" then
         getgenv().IronSoulManualExecutionOnly = true
-        status("Teleport continuation unavailable | no native queue API detected; run LOADER_V2.lua after teleport")
+        status("Teleport continuation unavailable | no native queue API detected; run LOADER_V4.lua after teleport")
         return false
     end
 
@@ -479,8 +476,8 @@ fn()
         tostring(config.TICKETS or "SMART"),
         tostring(config.HEADLESS ~= false),
         tostring(config.DEBUG_LOGS == true),
-        tostring(tonumber(config.LEVEL_STOP) or 40),
-        BASE .. "bootstrap_v2.lua"
+        tostring(tonumber(config.LEVEL_STOP) or 30),
+        BASE .. "bootstrap_v4.lua"
     )
 
     local ok, err = pcall(queueFn, payload)
@@ -493,9 +490,9 @@ fn()
     status("Teleport continuation queued via " .. tostring(queueName) .. " | " .. tostring(reason or "cross-place transition"))
     return true
 end
--- Redirect legacy lobby queue requests to the V2 continuation payload.
+-- Redirect legacy lobby queue requests to the V4 continuation payload.
 -- The native executor queue was captured before this compatibility alias, so
--- this wrapper cannot recursively call itself or accidentally queue V1.
+-- this wrapper cannot recursively call itself or accidentally queue an older version.
 local function v2QueueCompatibility(_legacyPayload)
     if getgenv().IronSoulMasterEnabled == false then
         status("MASTER OFF | legacy teleport queue blocked")
@@ -531,7 +528,7 @@ task.spawn(function()
         diag("ERROR", "Performance Booster failed: " .. tostring(perfErr))
     end
 end)
--- Intentionally do not queue on startup; run LOADER_V2.lua manually each session/map.
+-- Intentionally do not queue on startup; run LOADER_V4.lua manually each session/map.
 
 local function looksLikeDungeon()
     local rs = game:GetService("ReplicatedStorage")
