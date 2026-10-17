@@ -1,14 +1,15 @@
 -- K5-HUB IRONSOUL V4 STANDALONE DIAGNOSTICS
--- Diagnostics are deliberately self-contained and do not import V2 code.
+-- Diagnostics are self-contained and do not import V2 code.
 
 local Diagnostics = {}
 local PREFIX = "[K5-HUB V4 STANDALONE]"
 
 local function emit(method, message)
     local line = PREFIX .. " " .. tostring(message)
-    local fn = _G[method]
-    if type(fn) == "function" then
-        pcall(fn, line)
+    if method == "warn" then
+        if type(warn) == "function" then pcall(warn, line) end
+    else
+        if type(print) == "function" then pcall(print, line) end
     end
 end
 
