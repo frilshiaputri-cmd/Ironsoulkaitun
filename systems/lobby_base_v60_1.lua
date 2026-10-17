@@ -1845,16 +1845,15 @@ if not rewardLevel then
     end
 end
 
+-- V2 reward policy: ONLY claim Daily Quest. Other reward systems remain inactive.
+-- Keep the existing level gate; do not claim Season Pass, Seven Daily, Guidebook,
+-- Update Log, or Daily Login rewards from this lobby flow.
 local rewardClaimsAttempted = false
 if rewardLevel and rewardLevel >= 40 then
     rewardClaimsAttempted = true
     claimDailyQuest()
-    claimSeasonPass()
-    claimSevenDaily()
-    claimGuidebook()
-    claimUpdateLog()
 else
-    important("Auto Claim waiting for Lv40 | current=" .. tostring(rewardLevel or "unknown"))
+    important("Auto Daily Quest Claim waiting for Lv40 | current=" .. tostring(rewardLevel or "unknown"))
 end
 
 local dailyLoginPending,
