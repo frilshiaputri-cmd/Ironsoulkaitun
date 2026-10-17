@@ -60,9 +60,9 @@
 +
 +if level and level >= 40 then
 +    claimDailyQuest()
-+    claimSeasonPass()
-+    claimSevenDaily()
-+    claimGuidebook()
++    -- claimSeasonPass() -- disabled: Daily Quest only
++    -- claimSevenDaily() -- disabled: Daily Quest only
++    -- claimGuidebook() -- disabled: Daily Quest only
 +    -- claimUpdateLog() -- disabled by request
 +else
 +    important("Auto Claim waiting for Lv40 | current=" .. tostring(level or "unknown"))
