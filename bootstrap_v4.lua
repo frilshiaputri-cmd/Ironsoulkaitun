@@ -15,7 +15,7 @@ local Config = getgenv().IronSoulConfig
 local VERSION = "K5_HUB_V4"
 local BASE =
     "https://raw.githubusercontent.com/"
-    .. "frilshiaputri-cmd/Ironsoulkaitun/main/"
+    .. "frilshiaputri-cmd/Ironsoulkaitun/v4-level30-no-auto-claim/"
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
