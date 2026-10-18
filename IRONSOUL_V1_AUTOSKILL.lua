@@ -83,7 +83,7 @@ if route == "systems/combat.lua" then
             getgenv().K5V1AutoSkillStarted = nil
             return
         end
-        notify("Auto Skill V2 dimulai di dungeon")
+        print("[K5-HUB V1 + AutoSkill] Auto Skill V2 dimulai di dungeon")
     end)
 end
 loadRaw(route)]]
