@@ -354,8 +354,8 @@ end
 
 local function shortError(err)
     local text = tostring(err or "unknown")
-    if #text > 190 then
-        text = string.sub(text, 1, 190) .. "..."
+    if #text > 520 then
+        text = string.sub(text, 1, 520) .. "..."
     end
     return text
 end
