@@ -426,7 +426,7 @@ local function loadRaw(path)
 
         warn("[IronSoul V61.11] " .. message)
         status("ERROR | " .. shortError(message))
-        return false
+        return false, tostring(result or "runtime error with nil error object")
     end
 
     return true, result
