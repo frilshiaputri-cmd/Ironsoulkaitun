@@ -100,8 +100,8 @@ if not okFetch or type(source) ~= "string" or #source < 1000 then
     return
 end
 
--- Jalankan Auto Skill sebagai modul terpisah. Bootstrap V1 dibiarkan asli:
--- tidak ada source:gsub, injeksi loadRaw(route), atau penggantian antrean teleport.
+-- Bootstrap V1 tetap asli; Auto Skill dijalankan dari combat native V2.
+-- Tidak ada source:gsub, injeksi loadRaw(route), atau penggantian antrean teleport.
 env.IronSoulDisableAutoClaimAll = true
 env.IronSoulDisableSeasonSpin = true
 
