@@ -1,13 +1,9 @@
--- K5-HUB | IronSoul V1 + Auto Skill dari repo K5-HUB
--- Loader terpisah: tidak mengubah LOADER_V2.lua atau bootstrap_v2.lua.
--- Runtime inti V1 berasal dari MUshihara; modul Auto Skill berasal dari repo ini.
--- Catatan: Auto Skill memakai input keyboard Q/E/R. Di Delta Android, input ini
--- mungkin tidak diteruskan ke tombol skill mobile game.
+-- K5-HUB | IronSoul V1 dengan sistem Auto Skill native dari V2.
+-- Bootstrap dan batas level V1 tetap dipertahankan; skill dipanggil oleh combat V2.
+-- Tidak menjalankan modul keyboard Q/E/R terpisah agar tidak terjadi input ganda.
 
 local V1_BOOTSTRAP_URL =
     "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/bootstrap_v61_11.lua"
-local OWN_AUTO_SKILL_URL =
-    "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/systems/auto_skill.lua"
 local OWN_LOADER_URL =
     "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/IRONSOUL_V1_AUTOSKILL.lua"
 
@@ -51,6 +47,8 @@ env.IronSoulConfig.AUTO_GUIDEBOOK = false
 env.IronSoulConfig.AUTO_UPDATE_LOG = false
 env.IronSoulConfig.AUTO_DAILY_LOGIN = false
 env.K5V1AutoSkillLoader = OWN_LOADER_URL
+-- Aktifkan sistem Auto Skill native yang berada di alur combat V2.
+env.IronSoulConfig.AutoSkill = true
 
 -- Local client-side level guard. Kick the local player at level 30 or above.
 if not env.K5V1LevelGuardStarted then
@@ -107,29 +105,9 @@ end
 env.IronSoulDisableAutoClaimAll = true
 env.IronSoulDisableSeasonSpin = true
 
-local skillOk, skillSource = pcall(function()
-    return game:HttpGet(OWN_AUTO_SKILL_URL .. "?k5=" .. tostring(os.time()))
-end)
-if skillOk and type(skillSource) == "string" then
-    local skillChunk, skillCompileErr = loadstring(skillSource)
-    if skillChunk then
-        local runOk, startSkill = pcall(skillChunk)
-        if runOk and type(startSkill) == "function" then
-            local startOk, startErr = pcall(startSkill)
-            if startOk then
-                notify("Auto Skill dimulai sebagai modul terpisah; bootstrap V1 asli tanpa patch.")
-            else
-                warn("[K5-HUB V1 + AutoSkill] Gagal memulai Auto Skill: " .. tostring(startErr))
-            end
-        else
-            warn("[K5-HUB V1 + AutoSkill] Modul Auto Skill tidak valid: " .. tostring(startSkill))
-        end
-    else
-        warn("[K5-HUB V1 + AutoSkill] Compile Auto Skill gagal: " .. tostring(skillCompileErr))
-    end
-else
-    warn("[K5-HUB V1 + AutoSkill] Gagal mengambil Auto Skill: " .. tostring(skillSource))
-end
+-- Auto Skill tidak dijalankan sebagai modul Q/E/R terpisah.
+-- V1 menggunakan sistem skill native V2 di systems/combat.lua dan patch skill V2.
+
 
 local chunk, compileErr = loadstring(source)
 if not chunk then
@@ -137,7 +115,7 @@ if not chunk then
     return
 end
 
-notify("Memulai bootstrap V1 asli tanpa patch; Auto Skill berjalan terpisah.")
+notify("Memulai bootstrap V1; Auto Skill memakai sistem combat V2.")
 local runOk, runErr = pcall(chunk)
 if not runOk then
     notify("Runtime V1 error: " .. tostring(runErr))
