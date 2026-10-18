@@ -375,7 +375,7 @@ local function loadRaw(path)
 
         warn("[IronSoul V61.11] " .. message)
         status("ERROR | " .. shortError(message))
-        return false
+        return false, message
     end
 
     local normalized, normalizeErr = normalizeSource(source)
@@ -389,7 +389,7 @@ local function loadRaw(path)
 
         warn("[IronSoul V61.11] " .. message)
         status("ERROR | " .. shortError(message))
-        return false
+        return false, message
     end
 
     local fn, err = loadstring(normalized)
@@ -403,7 +403,7 @@ local function loadRaw(path)
 
         warn("[IronSoul V61.11] " .. message)
         status("ERROR | " .. shortError(message))
-        return false
+        return false, message
     end
 
     -- Keep the original runtime failure and capture its call stack. Some Luau
