@@ -52,7 +52,7 @@ end
 -- Saat masuk dungeon, start Auto Skill V2 dari repo milik pengguna sebelum
 -- combat V1 berjalan. Modul dicegah berjalan dua kali dalam server yang sama.
 local originalRouteCall = "loadRaw(route)"
-local injectedRouteCall = [[
+local injectedRouteCall = [=[
 if route == "systems/combat.lua" then
     task.spawn(function()
         local skillKey = tostring(game.PlaceId) .. "|" .. tostring(game.JobId)
@@ -60,7 +60,7 @@ if route == "systems/combat.lua" then
         if type(previousSkill) == "table" and previousSkill.Key == skillKey then return end
         getgenv().K5V1AutoSkillStarted = { Key = skillKey, At = os.clock() }
         local skillOk, skillSource = pcall(function()
-            return game:HttpGet("]] .. OWN_AUTO_SKILL_URL .. [[" .. "?k5=" .. tostring(os.time()))
+            return game:HttpGet("AUTO_SKILL_URL" .. "?k5=" .. tostring(os.time()))
         end)
         if not skillOk or type(skillSource) ~= "string" then
             warn("[K5-HUB V1 + AutoSkill] Gagal mengambil Auto Skill: " .. tostring(skillSource))
@@ -88,7 +88,9 @@ if route == "systems/combat.lua" then
         print("[K5-HUB V1 + AutoSkill] Auto Skill V2 dimulai di dungeon")
     end)
 end
-loadRaw(route)]]
+loadRaw(route)]=]
+
+injectedRouteCall = injectedRouteCall:gsub("AUTO_SKILL_URL", OWN_AUTO_SKILL_URL)
 
 local replacements = 0
 source, replacements = source:gsub(originalRouteCall, injectedRouteCall, 1)
