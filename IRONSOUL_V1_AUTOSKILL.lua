@@ -102,67 +102,33 @@ if not okFetch or type(source) ~= "string" or #source < 1000 then
     return
 end
 
--- Saat masuk dungeon, start Auto Skill V2 dari repo milik pengguna sebelum
--- combat V1 berjalan. Modul dicegah berjalan dua kali dalam server yang sama.
--- Keep claim/spin routines explicitly disabled for any compatible V1 modules.
+-- Jalankan Auto Skill sebagai modul terpisah. Bootstrap V1 dibiarkan asli:
+-- tidak ada source:gsub, injeksi loadRaw(route), atau penggantian antrean teleport.
 env.IronSoulDisableAutoClaimAll = true
 env.IronSoulDisableSeasonSpin = true
-local originalRouteCall = "loadRaw(route)"
-local injectedRouteCall = [=[
-if route == "systems/combat.lua" then
-    task.spawn(function()
-        local skillKey = tostring(game.PlaceId) .. "|" .. tostring(game.JobId)
-        local previousSkill = getgenv().K5V1AutoSkillStarted
-        if type(previousSkill) == "table" and previousSkill.Key == skillKey then return end
-        getgenv().K5V1AutoSkillStarted = { Key = skillKey, At = os.clock() }
-        local skillOk, skillSource = pcall(function()
-            return game:HttpGet("AUTO_SKILL_URL" .. "?k5=" .. tostring(os.time()))
-        end)
-        if not skillOk or type(skillSource) ~= "string" then
-            warn("[K5-HUB V1 + AutoSkill] Gagal mengambil Auto Skill: " .. tostring(skillSource))
-            getgenv().K5V1AutoSkillStarted = nil
-            return
-        end
-        local skillChunk, compileErr = loadstring(skillSource)
-        if not skillChunk then
-            warn("[K5-HUB V1 + AutoSkill] Compile Auto Skill gagal: " .. tostring(compileErr))
-            getgenv().K5V1AutoSkillStarted = nil
-            return
-        end
+
+local skillOk, skillSource = pcall(function()
+    return game:HttpGet(OWN_AUTO_SKILL_URL .. "?k5=" .. tostring(os.time()))
+end)
+if skillOk and type(skillSource) == "string" then
+    local skillChunk, skillCompileErr = loadstring(skillSource)
+    if skillChunk then
         local runOk, startSkill = pcall(skillChunk)
-        if not runOk or type(startSkill) ~= "function" then
+        if runOk and type(startSkill) == "function" then
+            local startOk, startErr = pcall(startSkill)
+            if startOk then
+                notify("Auto Skill dimulai sebagai modul terpisah; bootstrap V1 asli tanpa patch.")
+            else
+                warn("[K5-HUB V1 + AutoSkill] Gagal memulai Auto Skill: " .. tostring(startErr))
+            end
+        else
             warn("[K5-HUB V1 + AutoSkill] Modul Auto Skill tidak valid: " .. tostring(startSkill))
-            getgenv().K5V1AutoSkillStarted = nil
-            return
         end
-        local startOk, startErr = pcall(startSkill)
-        if not startOk then
-            warn("[K5-HUB V1 + AutoSkill] Gagal memulai Auto Skill: " .. tostring(startErr))
-            getgenv().K5V1AutoSkillStarted = nil
-            return
-        end
-        print("[K5-HUB V1 + AutoSkill] Auto Skill V2 dimulai di dungeon")
-    end)
-end
-loadRaw(route)]=]
-
-injectedRouteCall = injectedRouteCall:gsub("AUTO_SKILL_URL", OWN_AUTO_SKILL_URL)
-
-local replacements = 0
-source, replacements = source:gsub(originalRouteCall, injectedRouteCall, 1)
-if replacements ~= 1 then
-    notify("Patch gagal: format bootstrap V1 berubah. Tidak menjalankan versi tanpa patch.")
-    return
-end
-
--- Teleport berikutnya diarahkan kembali ke loader ini agar Auto Skill tetap
--- terpasang setelah pindah map, bukan langsung ke bootstrap upstream.
-local queueOld = 'BASE .. "bootstrap_v61_11.lua"'
-local queueNew = string.format("%q", OWN_LOADER_URL)
-local queueReplacements
-source, queueReplacements = source:gsub(queueOld, queueNew, 1)
-if queueReplacements ~= 1 then
-    notify("Peringatan: antrean teleport tetap memakai bootstrap V1 upstream.")
+    else
+        warn("[K5-HUB V1 + AutoSkill] Compile Auto Skill gagal: " .. tostring(skillCompileErr))
+    end
+else
+    warn("[K5-HUB V1 + AutoSkill] Gagal mengambil Auto Skill: " .. tostring(skillSource))
 end
 
 local chunk, compileErr = loadstring(source)
@@ -171,7 +137,7 @@ if not chunk then
     return
 end
 
-notify("Memulai runtime V1; Auto Skill V2 aktif otomatis di dungeon.")
+notify("Memulai bootstrap V1 asli tanpa patch; Auto Skill berjalan terpisah.")
 local runOk, runErr = pcall(chunk)
 if not runOk then
     notify("Runtime V1 error: " .. tostring(runErr))
