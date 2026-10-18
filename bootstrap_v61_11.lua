@@ -494,7 +494,7 @@ local routeName
 if game.PlaceId == TUTORIAL_PLACE_ID then
     -- Explicit versioned tutorial: V61.10 created this mobile-safe path, but
     -- the previous bootstrap accidentally kept routing to the old file.
-    route = "systems/tutorial_v61_10.lua"
+    route = "systems/tutorial_v61_11.lua"
     routeName = "Tutorial"
 
 elseif game.PlaceId == LOBBY_PLACE_ID
