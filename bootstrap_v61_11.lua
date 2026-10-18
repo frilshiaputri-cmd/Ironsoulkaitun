@@ -406,14 +406,23 @@ local function loadRaw(path)
         return false
     end
 
-    local runOk, result = pcall(fn)
+    -- Keep the original runtime failure and capture its call stack. Some Luau
+    -- errors are raised with a nil error object; tostring(result) alone then
+    -- hides the actual failing line, which made lobby failures look like "...: nil".
+    local runOk, result = xpcall(fn, function(err)
+        local message = tostring(err or "runtime error with nil error object")
+        if type(debug) == "table" and type(debug.traceback) == "function" then
+            return debug.traceback(message, 2)
+        end
+        return message
+    end)
 
     if not runOk then
         local message =
             "Runtime failed | "
             .. tostring(path)
             .. " | "
-            .. tostring(result)
+            .. tostring(result or "runtime error with nil error object")
 
         warn("[IronSoul V61.11] " .. message)
         status("ERROR | " .. shortError(message))
