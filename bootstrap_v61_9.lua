@@ -15,7 +15,7 @@ local Config = getgenv().IronSoulConfig
 local VERSION = "61.9"
 local BASE =
     "https://raw.githubusercontent.com/"
-    .. "MUshihara/ironsoulkaitun/main/"
+    .. "frilshiaputri-cmd/Ironsoulkaitun/main/"
 
 local TUTORIAL_PLACE_ID = 76701861705540
 local LOBBY_PLACE_ID = 117533937949084
