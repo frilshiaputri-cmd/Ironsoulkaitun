@@ -401,6 +401,7 @@ local function loadRaw(path)
     if getgenv().IronSoulLevelStopReached
         and path ~= "systems/performance_booster.lua"
         and path ~= "systems/lobby.lua"
+        and path ~= "systems/lobby_base_v60_1.lua"
     then
         status("LEVEL STOP | farm module load blocked")
         return false, "level limit reached"
