@@ -55,8 +55,10 @@ local originalRouteCall = "loadRaw(route)"
 local injectedRouteCall = [[
 if route == "systems/combat.lua" then
     task.spawn(function()
-        if getgenv().K5V1AutoSkillStarted then return end
-        getgenv().K5V1AutoSkillStarted = true
+        local skillKey = tostring(game.PlaceId) .. "|" .. tostring(game.JobId)
+        local previousSkill = getgenv().K5V1AutoSkillStarted
+        if type(previousSkill) == "table" and previousSkill.Key == skillKey then return end
+        getgenv().K5V1AutoSkillStarted = { Key = skillKey, At = os.clock() }
         local skillOk, skillSource = pcall(function()
             return game:HttpGet("]] .. OWN_AUTO_SKILL_URL .. [[" .. "?k5=" .. tostring(os.time()))
         end)
