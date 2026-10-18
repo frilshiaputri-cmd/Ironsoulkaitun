@@ -207,8 +207,12 @@ local loadRaw = getgenv().IronSoulLoadRaw
 if type(loadRaw) ~= "function" then
     error("K5-HUB V1: local loader unavailable; refusing unsafe lobby fallback")
 end
+-- V2-style lobby execution boundary: preserve loader diagnostics and never
+-- silently switch to an upstream reward/season implementation.
 local ok, result = loadRaw("systems/lobby_base_v60_1.lua")
 if not ok then
-    error("K5-HUB V1: local safe lobby failed: " .. tostring(result))
+    local detail = tostring(result or "loader returned false without an error detail")
+    status("V1 lobby load failed | " .. detail)
+    error("K5-HUB V1: local safe lobby failed | " .. detail)
 end
 return result
