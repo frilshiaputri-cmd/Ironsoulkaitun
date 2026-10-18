@@ -39,7 +39,53 @@ env.IronSoulConfig = env.IronSoulConfig or {
     TICKETS = "SMART",
     HEADLESS = true,
 }
+-- Force the requested policy even if an older config already exists.
+env.IronSoulConfig.LEVEL_STOP = 30
+env.IronSoulConfig.AUTO_CLAIM_ALL = false
+env.IronSoulConfig.AUTO_CLAIM = false
+env.IronSoulConfig.AUTO_REDEEM = false
+env.IronSoulConfig.AUTO_SEASON_SPIN = false
+env.IronSoulConfig.AUTO_SEASON_PASS = false
+env.IronSoulConfig.AUTO_SEVEN_DAILY = false
+env.IronSoulConfig.AUTO_GUIDEBOOK = false
+env.IronSoulConfig.AUTO_UPDATE_LOG = false
+env.IronSoulConfig.AUTO_DAILY_LOGIN = false
 env.K5V1AutoSkillLoader = OWN_LOADER_URL
+
+-- Local client-side level guard. Kick the local player at level 30 or above.
+if not env.K5V1LevelGuardStarted then
+    env.K5V1LevelGuardStarted = true
+    task.spawn(function()
+        local Players = game:GetService("Players")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local player = Players.LocalPlayer
+        local function readLevel()
+            local n = tonumber(player:GetAttribute("LG_Level"))
+            if n then return n end
+            for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+                if obj:IsA("ModuleScript") and obj.Name == "DataUtil" then
+                    local ok, util = pcall(require, obj)
+                    if ok and type(util) == "table" and type(util.GetPlayerData) == "function" then
+                        local dataOk, data = pcall(function() return util:GetPlayerData(player) end)
+                        if dataOk and type(data) == "table" and type(data.LevelData) == "table" then
+                            return tonumber(data.LevelData.Level)
+                        end
+                    end
+                end
+            end
+            return nil
+        end
+        while player and player.Parent do
+            local level = readLevel()
+            if level and level >= 30 then
+                warn("[K5-HUB V1] Level cap reached (" .. tostring(level) .. "); kicking local player.")
+                pcall(function() player:Kick("K5-HUB: batas level 30 tercapai.") end)
+                return
+            end
+            task.wait(1)
+        end
+    end)
+end
 
 local okFetch, source = pcall(function()
     return game:HttpGet(V1_BOOTSTRAP_URL .. "?k5=" .. tostring(os.time()))
@@ -51,6 +97,9 @@ end
 
 -- Saat masuk dungeon, start Auto Skill V2 dari repo milik pengguna sebelum
 -- combat V1 berjalan. Modul dicegah berjalan dua kali dalam server yang sama.
+-- Keep claim/spin routines explicitly disabled for any compatible V1 modules.
+env.IronSoulDisableAutoClaimAll = true
+env.IronSoulDisableSeasonSpin = true
 local originalRouteCall = "loadRaw(route)"
 local injectedRouteCall = [=[
 if route == "systems/combat.lua" then
