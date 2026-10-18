@@ -68,29 +68,8 @@ then
     return caveResult
 end
 
--- K5-HUB AUTO SKILL: ported from IronForge AutoFarm source (Q/E/R keyboard input).
--- Delta Android may not expose keyboard events to Roblox mobile skill buttons.
-do
-    local loadRaw = getgenv().IronSoulLoadRaw
-    if type(loadRaw) == "function" then
-        local ok, result = pcall(function()
-            local loaded, moduleOrErr = loadRaw("systems/auto_skill.lua")
-            if not loaded then error(moduleOrErr) end
-            if type(moduleOrErr) == "function" then
-                moduleOrErr()
-            elseif type(moduleOrErr) == "table" and type(moduleOrErr.Start) == "function" then
-                moduleOrErr.Start()
-            end
-        end)
-        if not ok then
-            local status = getgenv().IronSoulStatus
-            if type(status) == "function" then
-                pcall(status, "Auto skill module failed | " .. tostring(result))
-            end
-        end
-    end
-end
-
+-- Auto Skill dijalankan oleh sistem native V2 di combat patch chain di bawah.
+-- Hindari modul systems/auto_skill.lua (input keyboard Q/E/R) agar tidak duplikat.
 local originalLoadRaw = getgenv().IronSoulLoadRaw
 
 local function getPatcher()
