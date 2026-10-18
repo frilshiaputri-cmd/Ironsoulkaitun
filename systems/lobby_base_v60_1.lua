@@ -597,8 +597,7 @@ end
 local function pdata()
     local ok, value =
         pcall(function()
-            return DataUtil:
-                GetPlayerData(
+            return DataUtil:GetPlayerData(
                     LocalPlayer
                 )
         end)
@@ -627,8 +626,7 @@ local function lobbyOreBagStatus()
     then
         local ok, value =
             pcall(function()
-                return ForgeUtil:
-                    GetOres(
+                return ForgeUtil:GetOres(
                         LocalPlayer
                     )
             end)
@@ -647,8 +645,7 @@ local function lobbyOreBagStatus()
     then
         local ok, value =
             pcall(function()
-                return ForgeUtil:
-                    GetMax(
+                return ForgeUtil:GetMax(
                         LocalPlayer
                     )
             end)
@@ -665,8 +662,7 @@ local function lobbyOreBagStatus()
     then
         local ok, value =
             pcall(function()
-                return ForgeUtil:
-                    CheckCanAdd(
+                return ForgeUtil:CheckCanAdd(
                         LocalPlayer
                     )
             end)
@@ -713,8 +709,7 @@ local function lobbyEquipmentBagFull()
 
     local ok, value =
         pcall(function()
-            return EquipmentUtil:
-                CheckCanAdd(
+            return EquipmentUtil:CheckCanAdd(
                     LocalPlayer
                 )
         end)
@@ -733,21 +728,18 @@ local loaded =
                 return nil
             end
 
-            if LocalPlayer:
-                GetAttribute(
+            if LocalPlayer:GetAttribute(
                     "Loaded"
                 ) == false
             then
                 return nil
             end
 
-            if LocalPlayer:
-                    GetAttribute(
+            if LocalPlayer:GetAttribute(
                         "LG_Level"
                     )
                 == nil
-                or LocalPlayer:
-                    GetAttribute(
+                or LocalPlayer:GetAttribute(
                         "LG_PowerNew1"
                     )
                 == nil
@@ -769,8 +761,7 @@ end
 
 local function level()
     return num(
-        LocalPlayer:
-            GetAttribute(
+        LocalPlayer:GetAttribute(
                 "LG_Level"
             )
     )
@@ -778,8 +769,7 @@ end
 
 local function power()
     return num(
-        LocalPlayer:
-            GetAttribute(
+        LocalPlayer:GetAttribute(
                 "LG_PowerNew1"
             )
     )
@@ -1012,8 +1002,7 @@ local function isCodeAlreadyUsed(code)
     then
         local ok, used =
             pcall(function()
-                return CodesUtil:
-                    IsCodeUsed(
+                return CodesUtil:IsCodeUsed(
                         LocalPlayer,
                         code
                     )
@@ -1059,8 +1048,7 @@ local function redeemCode(code)
     local packed =
         table.pack(
             pcall(function()
-                return CodesController:
-                    RedeemCode(code)
+                return CodesController:RedeemCode(code)
             end)
         )
 
@@ -1270,8 +1258,7 @@ local function claimDailyQuest()
                 )
 
                 pcall(function()
-                    DailyQuestUtil:
-                        ClickGetReward(
+                    DailyQuestUtil:ClickGetReward(
                             LocalPlayer,
                             i
                         )
@@ -1294,8 +1281,7 @@ local function claimDailyQuest()
                 -- Exact mapped fallback: nil index asks the system to process
                 -- currently available unclaimed milestones.
                 pcall(function()
-                    DailyQuestUtil:
-                        ClickGetReward(
+                    DailyQuestUtil:ClickGetReward(
                             LocalPlayer
                         )
                 end)
@@ -1324,8 +1310,7 @@ local function claimSeasonPass()
     then
         pcall(function()
             local value =
-                SeasonUtil:
-                    GetCurrentSeason()
+                SeasonUtil:GetCurrentSeason()
 
             if type(value)
                 == "string"
@@ -1384,8 +1369,7 @@ local function claimSeasonPass()
             )
 
             pcall(function()
-                SeasonUtil.RemoteEvent:
-                    FireServer(
+                SeasonUtil.RemoteEvent:FireServer(
                         "Claim",
                         lv
                     )
@@ -1471,8 +1455,7 @@ local function claimSevenDaily()
                 )
 
                 pcall(function()
-                    SevenDailyUtil:
-                        CanGetDailyReward(
+                    SevenDailyUtil:CanGetDailyReward(
                             LocalPlayer,
                             day
                         )
@@ -1527,8 +1510,7 @@ local function claimGuidebook()
         for _ = 1, 12 do
             local ok, can =
                 pcall(function()
-                    return GuidebookUtil:
-                        CanClaimed(
+                    return GuidebookUtil:CanClaimed(
                             LocalPlayer,
                             category
                         )
@@ -1546,8 +1528,7 @@ local function claimGuidebook()
             )
 
             pcall(function()
-                GuidebookUtil:
-                    GetRewards(
+                GuidebookUtil:GetRewards(
                         LocalPlayer,
                         category
                     )
@@ -1607,8 +1588,7 @@ local function claimUpdateLog()
                     )
 
                     pcall(function()
-                        UpdateLogUtil:
-                            ClaimReward(
+                        UpdateLogUtil:ClaimReward(
                                 LocalPlayer,
                                 id
                             )
@@ -1661,8 +1641,7 @@ local function inspectDailyLogin()
             pcall(function()
                 -- nil third arg intentionally prevents us from treating
                 -- MakeUp as a normal claimable reward.
-                return DailyLoginUtil:
-                    GetClientState(
+                return DailyLoginUtil:GetClientState(
                         LocalPlayer,
                         nil
                     )
@@ -1705,8 +1684,7 @@ local function inspectDailyLogin()
     then
         local ok, can =
             pcall(function()
-                return DailyLoginUtil:
-                    HasUnclaimedReward(
+                return DailyLoginUtil:HasUnclaimedReward(
                         LocalPlayer
                     )
             end)
@@ -1759,8 +1737,7 @@ local function spendSeasonTickets()
         )
 
         pcall(function()
-            SeasonUtil.RemoteEvent:
-                FireServer(
+            SeasonUtil.RemoteEvent:FireServer(
                     "TrySeasonLottery",
                     3
                 )
@@ -1798,8 +1775,7 @@ local function spendSeasonTickets()
         )
 
         pcall(function()
-            SeasonUtil.RemoteEvent:
-                FireServer(
+            SeasonUtil.RemoteEvent:FireServer(
                     "TrySeasonLottery",
                     1
                 )
@@ -2079,8 +2055,7 @@ local function activateSwordSkills()
                     .. key
             )
 
-            SkillTreeUtil.RemoteEvent:
-                FireServer(
+            SkillTreeUtil.RemoteEvent:FireServer(
                     "ActiveSkill",
                     "Sword",
                     key
@@ -2127,8 +2102,7 @@ local function taskCompleted(id)
     then
         local ok, value =
             pcall(function()
-                return TaskUtil:
-                    IsCompleted(
+                return TaskUtil:IsCompleted(
                         LocalPlayer,
                         id
                     )
@@ -2158,8 +2132,7 @@ local function forgeData()
 
     local ok, value =
         pcall(function()
-            return ForgeUtil:
-                GetForgeData(
+            return ForgeUtil:GetForgeData(
                     LocalPlayer
                 )
         end)
@@ -2182,8 +2155,7 @@ local function forgeQTE()
 
     local ok, value =
         pcall(function()
-            return ForgeUtil:
-                GetQTE(
+            return ForgeUtil:GetQTE(
                     LocalPlayer
                 )
         end)
@@ -2205,8 +2177,7 @@ local function forgeInvoke(...)
     local packed =
         table.pack(
             pcall(function()
-                return ForgeRF:
-                    InvokeServer(
+                return ForgeRF:InvokeServer(
                         table.unpack(args)
                     )
             end)
@@ -2235,8 +2206,7 @@ local function requiredQTE(
     then
         local ok, cfg =
             pcall(function()
-                return ForgeUtil:
-                    GetForgeQTE(
+                return ForgeUtil:GetForgeQTE(
                         oresNum
                     )
             end)
@@ -2507,8 +2477,7 @@ local function oreTotalAndMax()
     then
         local ok, value =
             pcall(function()
-                return ForgeUtil:
-                    GetOres(
+                return ForgeUtil:GetOres(
                         LocalPlayer
                     )
             end)
@@ -2529,8 +2498,7 @@ local function oreTotalAndMax()
     then
         local ok, value =
             pcall(function()
-                return ForgeUtil:
-                    GetMax(
+                return ForgeUtil:GetMax(
                         LocalPlayer
                     )
             end)
@@ -2570,8 +2538,7 @@ local function oreQuality(id)
         pcall(function()
             rarity =
                 num(
-                    EquipmentUtil:
-                        GetOreRarity(id)
+                    EquipmentUtil:GetOreRarity(id)
                 )
         end)
     end
@@ -2583,8 +2550,7 @@ local function oreQuality(id)
     then
         local ok, def =
             pcall(function()
-                return ForgeUtil:
-                    GetDef(id)
+                return ForgeUtil:GetDef(id)
             end)
 
         if ok
@@ -2931,8 +2897,7 @@ local function equippedPets()
     then
         local ok, value =
             pcall(function()
-                return PetsUtil:
-                    GetEquippedPets(
+                return PetsUtil:GetEquippedPets(
                         LocalPlayer
                     )
             end)
@@ -2974,8 +2939,7 @@ local function petPass()
             then
                 local ok, done =
                     pcall(function()
-                        return PetsHatchUtil:
-                            IsCompleted(
+                        return PetsHatchUtil:IsCompleted(
                                 LocalPlayer,
                                 index
                             )
@@ -2989,8 +2953,7 @@ local function petPass()
                             .. tostring(index)
                     )
 
-                    PetsHatchUtil.RemoteEvent:
-                        FireServer(
+                    PetsHatchUtil.RemoteEvent:FireServer(
                             "Claim",
                             index
                         )
@@ -3020,8 +2983,7 @@ local function petPass()
             "Pets EquipBest"
         )
 
-        PetsUtil.RemoteEvent:
-            FireServer(
+        PetsUtil.RemoteEvent:FireServer(
                 "EquipBest"
             )
 
@@ -3053,8 +3015,7 @@ local function equipmentPower(uuid)
 
     local ok, value =
         pcall(function()
-            return EquipmentUtil:
-                GetEquipmentPowerByUUID(
+            return EquipmentUtil:GetEquipmentPowerByUUID(
                     LocalPlayer,
                     uuid
                 )
@@ -3076,8 +3037,7 @@ local function equipmentBase(uuid)
 
     local ok, value =
         pcall(function()
-            return EquipmentCombat:
-                GetDmgOrHp(
+            return EquipmentCombat:GetDmgOrHp(
                     LocalPlayer,
                     uuid
                 )
@@ -3233,8 +3193,7 @@ local function equipWeapon(
             .. tostring(slot)
     )
 
-    EquipmentRE:
-        FireServer(
+    EquipmentRE:FireServer(
             "Equip",
             row.UUID,
             slot
@@ -3286,8 +3245,7 @@ local function equipArmor(row)
             )
     )
 
-    EquipmentRE:
-        FireServer(
+    EquipmentRE:FireServer(
             "Equip",
             row.UUID
         )
@@ -3368,8 +3326,7 @@ local function equipmentPass()
     then
         pcall(function()
             secondUnlocked =
-                EquipmentSlots:
-                    IsUnlockWeaponSlot(
+                EquipmentSlots:IsUnlockWeaponSlot(
                         LocalPlayer,
                         backup
                     ) == true
@@ -3455,8 +3412,7 @@ local function spendAttackPoints()
                 )
         )
 
-        AttributeUpgradeUtil.RemoteEvent:
-            FireServer(
+        AttributeUpgradeUtil.RemoteEvent:FireServer(
                 "Upgrade",
                 {
                     AtkBonusValue = 1,
@@ -3727,8 +3683,7 @@ local function inventoryCleanup()
             .. tostring(#sell)
     )
 
-    EquipmentRE:
-        FireServer(
+    EquipmentRE:FireServer(
             "Sell",
             sell
         )
@@ -4211,8 +4166,7 @@ table.sort(
 local function clearData()
     local ok, value =
         pcall(function()
-            return WorldUtil:
-                GetClearData(
+            return WorldUtil:GetClearData(
                     LocalPlayer
                 )
         end)
@@ -4252,8 +4206,7 @@ local function isUnlocked(
 )
     local ok, value =
         pcall(function()
-            return WorldUtil:
-                IsUnlockWorld(
+            return WorldUtil:IsUnlockWorld(
                     LocalPlayer,
                     worldId,
                     diff
@@ -4371,26 +4324,22 @@ plan(
 local function getRoot()
     local char =
         LocalPlayer.Character
-        or LocalPlayer.CharacterAdded:
-            Wait()
+        or LocalPlayer.CharacterAdded:Wait()
 
-    return char:
-        WaitForChild(
+    return char:WaitForChild(
             "HumanoidRootPart",
             10
         )
 end
 
 local function roomContainer()
-    return Workspace:
-        FindFirstChild(
+    return Workspace:FindFirstChild(
             "MatchRoom"
         )
 end
 
 local function enteredRoomId()
-    return LocalPlayer:
-        GetAttribute(
+    return LocalPlayer:GetAttribute(
             "EnterRoomId"
         )
 end
@@ -4401,8 +4350,7 @@ local function roomById(id)
 
     return c
         and id
-        and c:
-            FindFirstChild(
+        and c:FindFirstChild(
                 tostring(id)
             )
 end
@@ -4410,8 +4358,7 @@ end
 local function isFreeRoom(room)
     local owner =
         tonumber(
-            room:
-                GetAttribute(
+            room:GetAttribute(
                     "HomeownerId"
                 )
         )
@@ -4472,8 +4419,7 @@ local function touchParts(room)
                 )
 
             local touch =
-                obj:
-                    FindFirstChildOfClass(
+                obj:FindFirstChildOfClass(
                         "TouchTransmitter"
                     ) ~= nil
 
@@ -4739,8 +4685,7 @@ action(
         )
 )
 
-WorldUtil.RemoteEvent:
-    FireServer(
+WorldUtil.RemoteEvent:FireServer(
         "SelectWorld",
         target.WorldId,
         target.DiffLevel
@@ -4760,8 +4705,7 @@ action(
         .. " solo"
 )
 
-GameMatchRE:
-    FireServer(
+GameMatchRE:FireServer(
         "CreatRoom",
         target.WorldId,
         target.DiffLevel,
@@ -4824,8 +4768,7 @@ local teleportObserved =
     false
 
 local conn =
-    LocalPlayer.OnTeleport:
-        Connect(function(state)
+    LocalPlayer.OnTeleport:Connect(function(state)
             teleportObserved = true
 
             matchLog(
@@ -4839,8 +4782,7 @@ local conn =
 local started =
     waitUntil(
         function()
-            if LocalPlayer:
-                GetAttribute(
+            if LocalPlayer:GetAttribute(
                     "IsTeleporting"
                 )
             then
