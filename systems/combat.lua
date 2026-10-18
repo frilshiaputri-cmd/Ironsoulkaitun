@@ -170,6 +170,11 @@ end
 
 getgenv().IronSoulLoadRaw = routedLoadRaw
 
+local skillStatus = getgenv().IronSoulStatus
+if type(skillStatus) == "function" then
+    pcall(skillStatus, "V1 Auto Skill | applying native V2 combat patches")
+end
+
 local ok, result = pcall(function()
     return getPatcher()({
         repository = "frilshiaputri-cmd/Ironsoulkaitun",
@@ -200,33 +205,18 @@ end)
 getgenv().IronSoulLoadRaw = originalLoadRaw
 
 if not ok then
-    -- Recovery path: a stale/invalid patch must not stop auto-execute entirely.
-    -- Run the pinned upstream combat source if the patch chain fails.
-    local fallbackOk, fallbackResult = pcall(function()
-        local fallbackSource = game:HttpGet(
-            "https://raw.githubusercontent.com/MUshihara/ironsoulkaitun/1d47f7f50ec8ecd92bca691b17d586d6bdecfa55/systems/combat.lua?t="
-                .. tostring(os.time())
-        )
-        local fallbackFn, fallbackErr = loadstring(fallbackSource)
-        if not fallbackFn then
-            error("Combat fallback compile failed: " .. tostring(fallbackErr))
-        end
-        return fallbackFn()
-    end)
-
-    if not fallbackOk then
-        local status = getgenv().IronSoulStatus
-        if type(status) == "function" then
-            pcall(status, "Combat recovery failed | " .. tostring(fallbackResult))
-        end
-        error(fallbackResult)
-    end
-
+    -- Never silently run the unpatched upstream combat: that build does not
+    -- include the V1-connected native V2 Auto Skill chain.
     local status = getgenv().IronSoulStatus
     if type(status) == "function" then
-        pcall(status, "Combat patch chain failed; pinned fallback started")
+        pcall(status, "ERROR | native Auto Skill patch chain failed | " .. tostring(result))
     end
-    return fallbackResult
+    error("K5-HUB V1 native Auto Skill patch chain failed: " .. tostring(result))
+end
+
+local status = getgenv().IronSoulStatus
+if type(status) == "function" then
+    pcall(status, "V1 Auto Skill | native V2 combat patches active")
 end
 
 return result
