@@ -12,6 +12,20 @@ getgenv().IronSoulConfig =
     }
 
 local Config = getgenv().IronSoulConfig
+-- K5-HUB V1 policy is enforced at the runtime entry, not only by the loader.
+Config.LEVEL_STOP = 30
+Config.AutoSkill = true
+Config.AUTO_CLAIM_ALL = false
+Config.AUTO_CLAIM = false
+Config.AUTO_SEASON_SPIN = false
+Config.AUTO_SEASON_PASS = false
+Config.AUTO_SEVEN_DAILY = false
+Config.AUTO_GUIDEBOOK = false
+Config.AUTO_UPDATE_LOG = false
+Config.AUTO_DAILY_LOGIN = false
+getgenv().IronSoulDisableAutoClaimAll = true
+getgenv().IronSoulDisableSeasonSpin = true
+
 local VERSION = "61.11"
 local BASE =
     "https://raw.githubusercontent.com/"
