@@ -68,6 +68,14 @@ then
     return caveResult
 end
 
+-- K5-HUB V1 explicitly enables the same native V2 combat Auto Skill chain.
+do
+    local env = getgenv()
+    env.IronSoulConfig = env.IronSoulConfig or {}
+    env.IronSoulConfig.AutoSkill = true
+    env.K5V1NativeAutoSkill = true
+end
+
 -- Auto Skill dijalankan oleh sistem native V2 di combat patch chain di bawah.
 -- Hindari modul systems/auto_skill.lua (input keyboard Q/E/R) agar tidak duplikat.
 local originalLoadRaw = getgenv().IronSoulLoadRaw
