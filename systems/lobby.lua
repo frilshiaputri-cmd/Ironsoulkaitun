@@ -161,7 +161,7 @@ status("Lobby PlayerData ready | Lv" .. tostring(finalLevel) .. " via " .. tostr
 -- HARD LEVEL CAP: never schedule another dungeon when the player is already
 -- at the configured level limit. The bootstrap monitor handles level-ups mid-run.
 do
-    local cap = tonumber((getgenv().IronSoulConfig or {}).LEVEL_STOP) or 40
+    local cap = tonumber((getgenv().IronSoulConfig or {}).LEVEL_STOP) or 30
     if cap > 0 and tonumber(finalLevel) and tonumber(finalLevel) >= cap then
         getgenv().IronSoulLevelStopReached = true
         getgenv().IronSoulLevelStopLevel = tonumber(finalLevel)
