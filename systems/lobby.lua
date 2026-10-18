@@ -187,45 +187,28 @@ end
 
 -- Preserve the canonical queueBootstrap created by bootstrap_v2.lua.
 
-local function getPatcher()
-    local loadRaw = getgenv().IronSoulLoadRaw
-    if type(loadRaw) == "function" then
-        local ok, patcher = loadRaw("systems/patch_loader.lua")
-        if ok and type(patcher) == "function" then
-            return patcher
-        end
-    end
+-- K5-HUB V1: use the maintained local lobby source only.
+-- Do not silently fall back to an upstream lobby build that can re-enable
+-- reward claims or SeasonTicket spending if a patch fails.
+local cfg = getgenv().IronSoulConfig or {}
+cfg.AUTO_CLAIM_ALL = false
+cfg.AUTO_CLAIM = false
+cfg.AUTO_SEASON_SPIN = false
+cfg.AUTO_SEASON_PASS = false
+cfg.AUTO_SEVEN_DAILY = false
+cfg.AUTO_GUIDEBOOK = false
+cfg.AUTO_UPDATE_LOG = false
+cfg.AUTO_DAILY_LOGIN = false
+getgenv().IronSoulConfig = cfg
+getgenv().IronSoulDisableAutoClaimAll = true
+getgenv().IronSoulDisableSeasonSpin = true
 
-    local source = game:HttpGet(BASE .. "systems/patch_loader.lua?t=" .. tostring(os.time()))
-    local fn, err = loadstring(source)
-    assert(fn, err)
-    local patcher = fn()
-    assert(type(patcher) == "function", "V61.23 lobby patch loader unavailable")
-    return patcher
+local loadRaw = getgenv().IronSoulLoadRaw
+if type(loadRaw) ~= "function" then
+    error("K5-HUB V1: local loader unavailable; refusing unsafe lobby fallback")
 end
-
-local patcherOk, patchedLobby = pcall(function()
-    return getPatcher()({
-    repository = "frilshiaputri-cmd/Ironsoulkaitun",
-    base_repository = "MUshihara/ironsoulkaitun",
-    base_commit = "1d47f7f50ec8ecd92bca691b17d586d6bdecfa55",
-    path = "systems/lobby.lua",
-    patch_paths = {
-        "systems/patches/lobby_v61_6.patch",
-        "systems/patches/lobby_v61_7_reserve_best_ore.patch",
-        "systems/patches/lobby_v61_8_forge_metrics.patch",
-        "systems/patches/lobby_v61_9_disable_season_spin.patch",
-    },
-    })
-end)
-
-if patcherOk and patchedLobby ~= nil then
-    return patchedLobby
+local ok, result = loadRaw("systems/lobby_base_v60_1.lua")
+if not ok then
+    error("K5-HUB V1: local safe lobby failed: " .. tostring(result))
 end
-
-status("PATCH WARNING | lobby patches incompatible; loading base lobby module")
-local fallbackUrl = BASE .. "systems/lobby_base_v60_1.lua?t=" .. tostring(os.time())
-local fallbackSource = game:HttpGet(fallbackUrl)
-local fallbackFn, fallbackErr = loadstring(fallbackSource)
-assert(fallbackFn, "lobby fallback compile failed: " .. tostring(fallbackErr))
-return fallbackFn()
+return result
