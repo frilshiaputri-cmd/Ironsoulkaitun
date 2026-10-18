@@ -5,7 +5,7 @@
 -- mungkin tidak diteruskan ke tombol skill mobile game.
 
 local V1_BOOTSTRAP_URL =
-    "https://raw.githubusercontent.com/MUshihara/ironsoulkaitun/main/bootstrap_v61_11.lua"
+    "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/bootstrap_v61_11.lua"
 local OWN_AUTO_SKILL_URL =
     "https://raw.githubusercontent.com/frilshiaputri-cmd/Ironsoulkaitun/main/systems/auto_skill.lua"
 local OWN_LOADER_URL =
