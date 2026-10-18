@@ -78,7 +78,14 @@ if not env.K5V1LevelGuardStarted then
         while player and player.Parent do
             local level = readLevel()
             if level and level >= 30 then
-                warn("[K5-HUB V1] Level cap reached (" .. tostring(level) .. "); kicking local player.")
+                env.IronSoulLevelStopReached = true
+                env.IronSoulLevelStopLevel = level
+                env.IronSoulNoAutoContinue = true
+                env.IronSoulManualExecutionOnly = true
+                if type(env.IronSoulConfig) == "table" then
+                    env.IronSoulConfig.FARM = "OFF"
+                end
+                warn("[K5-HUB V1] Level cap reached (" .. tostring(level) .. "); farming/continuation stopped; kicking local player.")
                 pcall(function() player:Kick("K5-HUB: batas level 30 tercapai.") end)
                 return
             end
