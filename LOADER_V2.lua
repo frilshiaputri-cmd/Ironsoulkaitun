@@ -9,6 +9,7 @@ getgenv().IronSoulConfig = {
     LEVEL_STOP = 40,
     AUTO_REDEEM = false,
     ANTI_AFK = true,
+    AutoSkill = true,
 }
 
 local ok, result = pcall(function()
