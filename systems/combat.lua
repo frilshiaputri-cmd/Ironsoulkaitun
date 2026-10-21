@@ -199,6 +199,7 @@ local ok, result = pcall(function()
             "systems/patches/combat_v61_25_unblock_auto_skill_attempts.patch",
             "systems/patches/combat_v61_26_refresh_skill_button_detection.patch",
             "systems/patches/combat_v61_27_allow_skill_attempt_on_stale_cooldown.patch",
+            "systems/patches/combat_v61_28_yuszx_autoskill_activate_fallback.patch",
         },
     })
 end)
