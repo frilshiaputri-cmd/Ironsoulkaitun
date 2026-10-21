@@ -12,7 +12,7 @@ getgenv().IronSoulConfig =
     }
 
 local Config = getgenv().IronSoulConfig
-local VERSION = "K5_HUB_V2"
+local VERSION = "K5_HUB_V2_SYNC_20261021_2"
 local BASE =
     "https://raw.githubusercontent.com/"
     .. "frilshiaputri-cmd/Ironsoulkaitun/main/"
@@ -422,6 +422,17 @@ local function loadRaw(path)
     local fn, err = loadstring(normalized)
     if not fn then
         local message = "Compile failed | " .. tostring(path) .. " | " .. tostring(err)
+        local lineNumber = tonumber(string.match(tostring(err), ":(%d+):"))
+        if lineNumber then
+            local sourceLines = string.split(normalized, "\n")
+            local first = math.max(1, lineNumber - 2)
+            local last = math.min(#sourceLines, lineNumber + 2)
+            local context = {}
+            for lineIndex = first, last do
+                table.insert(context, tostring(lineIndex) .. ": " .. tostring(sourceLines[lineIndex]))
+            end
+            message ..= " | context: " .. table.concat(context, " || ")
+        end
         warn("[K5-Hub V2] " .. message); status("ERROR | " .. shortError(message))
         return false
     end
