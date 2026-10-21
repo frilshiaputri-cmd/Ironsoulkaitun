@@ -12,7 +12,7 @@ getgenv().IronSoulConfig =
     }
 
 local Config = getgenv().IronSoulConfig
-local VERSION = "K5_HUB_V2_SYNC_20261021_2"
+local VERSION = "K5_HUB_V2_AUTOEXEC_RETRY_20261021_3"
 local BASE =
     "https://raw.githubusercontent.com/"
     .. "frilshiaputri-cmd/Ironsoulkaitun/main/"
@@ -472,8 +472,7 @@ local function queueBootstrap(reason)
 
     local config = getgenv().IronSoulConfig or {}
     local payload = string.format([[
-task.wait(1.35)
-getgenv().IronSoulConfig = {
+local config = {
     FPS_CAP = %s,
     FARM = %q,
     TICKETS = %q,
@@ -481,10 +480,37 @@ getgenv().IronSoulConfig = {
     DEBUG_LOGS = %s,
     LEVEL_STOP = %s,
 }
-local source = game:HttpGet(%q .. "?t=" .. tostring(os.time()))
-local fn, err = loadstring(source)
-assert(fn, err)
-fn()
+getgenv().IronSoulConfig = config
+
+-- Teleport queues can run before the destination place finishes loading.
+-- Retry fetching/compiling the owned V2 bootstrap rather than silently dying.
+local lastError
+for attempt = 1, 4 do
+    task.wait(attempt == 1 and 2 or 1.5)
+    local okFetch, source = pcall(function()
+        return game:HttpGet(%q .. "?v=" .. %q .. "&attempt=" .. tostring(attempt) .. "&t=" .. tostring(os.time()))
+    end)
+    if okFetch and type(source) == "string" and #source > 1000 then
+        local fn, compileErr = loadstring(source)
+        if fn then
+            local okRun, runErr = pcall(fn)
+            if okRun then
+                return
+            end
+            lastError = runErr
+        else
+            lastError = compileErr
+        end
+    else
+        lastError = source or "empty bootstrap response"
+    end
+end
+warn("[K5-Hub V2] teleport auto-execute failed after 4 attempts: " .. tostring(lastError))
+pcall(function()
+    if type(writefile) == "function" then
+        writefile("K5Hub_V2_AutoExecute_Error.txt", tostring(lastError))
+    end
+end)
 ]],
         tostring(tonumber(config.FPS_CAP) or 60),
         tostring(config.FARM or "NEWBIE"),
@@ -492,7 +518,8 @@ fn()
         tostring(config.HEADLESS ~= false),
         tostring(config.DEBUG_LOGS == true),
         tostring(tonumber(config.LEVEL_STOP) or 40),
-        BASE .. "bootstrap_v2.lua"
+        BASE .. "bootstrap_v2.lua",
+        VERSION
     )
 
     local ok, err = pcall(queueFn, payload)
