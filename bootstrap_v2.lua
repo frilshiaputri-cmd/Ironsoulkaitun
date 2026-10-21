@@ -62,7 +62,7 @@ local LOBBY_PLACE_ID = 117533937949084
 
 -- Level-cap monitor is handled directly by this bootstrap; no auto_redeem_v2 module is used.
 local LEVEL_STOP = tonumber(Config.LEVEL_STOP)
-if LEVEL_STOP == nil then LEVEL_STOP = 30 end
+if LEVEL_STOP == nil then LEVEL_STOP = 40 end
 
 if LEVEL_STOP > 0 then
     task.spawn(function()
@@ -480,7 +480,7 @@ fn()
         tostring(config.TICKETS or "SMART"),
         tostring(config.HEADLESS ~= false),
         tostring(config.DEBUG_LOGS == true),
-        tostring(tonumber(config.LEVEL_STOP) or 30),
+        tostring(tonumber(config.LEVEL_STOP) or 40),
         BASE .. "bootstrap_v2.lua"
     )
 
@@ -545,7 +545,9 @@ end
 
 local route, routeName
 if game.PlaceId == TUTORIAL_PLACE_ID then
-    route, routeName = "systems/tutorial.lua", "Tutorial"
+    -- Preserve the game's first-login tutorial/intro; do not run automation here.
+    diag("INFO", "Tutorial place detected; automation intentionally skipped to preserve intro")
+    return
 elseif game.PlaceId == LOBBY_PLACE_ID or workspace:GetAttribute("WorldName") == "Lobby" then
     route, routeName = "systems/lobby.lua", "Lobby"
 elseif looksLikeDungeon() then
