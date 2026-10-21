@@ -2427,43 +2427,72 @@ local function skillReady(action)
         >= fallbackCD[action]
 end
 
-local function castSkill(action)
-    local fn =
-        Callbacks[action]
+-- Fallback adapted from Yuszx-AutoSkill-fixed.lua:
+-- rescan the live PlayerGui and activate the native skill button when
+-- executor callback discovery is unavailable or the UI was rebuilt.
+local function findSkillButton(action)
+    local pg = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+    if not pg then return nil end
 
-    if not fn
-        or not skillReady(action)
-    then
+    for _, obj in ipairs(pg:GetDescendants()) do
+        if obj:IsA("GuiButton") and obj.Parent
+            and obj.Visible and obj.Active
+        then
+            local name = string.lower(tostring(obj.Name or ""))
+            if name == string.lower(action)
+                or string.find(name, string.lower(action), 1, true)
+            then
+                return obj
+            end
+        end
+    end
+
+    return nil
+end
+
+local lastCallbackScan = 0
+local CALLBACK_RESCAN_INTERVAL = 1.5
+
+local function castSkill(action)
+    if not skillReady(action) then
         return false
     end
 
-    -- Allow native skill visual briefly if desired; basic attack visuals
-    -- remain suppressed.
-    SkillCastingUntil =
-        os.clock() + 0.35
+    if not Callbacks[action]
+        or os.clock() - lastCallbackScan >= CALLBACK_RESCAN_INTERVAL
+    then
+        pcall(discoverCallbacks)
+        lastCallbackScan = os.clock()
+    end
 
-    local ok, err =
-        pcall(fn)
+    -- Allow native skill visual briefly; basic attack visuals remain suppressed.
+    SkillCastingUntil = os.clock() + 0.35
+
+    local fn = Callbacks[action]
+    local ok, err = false, "native callback unavailable"
+
+    if type(fn) == "function" then
+        ok, err = pcall(fn)
+    end
+
+    -- Button:Activate() is the source-file fallback. Use it only if the
+    -- discovered native callback could not be invoked, avoiding duplicate casts.
+    if not ok then
+        local button = findSkillButton(action)
+        if button then
+            ok, err = pcall(function()
+                button:Activate()
+            end)
+        end
+    end
 
     if ok then
-        localLastCast[action] =
-            os.clock()
-
-        combatLog(
-            "CAST "
-                .. action
-        )
-
+        localLastCast[action] = os.clock()
+        combatLog("CAST " .. action)
         return true
     end
 
-    combatLog(
-        "CAST_FAIL "
-            .. action
-            .. " "
-            .. tostring(err)
-    )
-
+    combatLog("CAST_FAIL " .. action .. " " .. tostring(err))
     return false
 end
 
@@ -5436,15 +5465,11 @@ local function fightEnemy(enemy)
             )
         end
 
-        if Callbacks.Skill2
-            and skillReady("Skill2")
-        then
+        if skillReady("Skill2") then
             if castSkill("Skill2") then
                 task.wait(0.16)
             end
-        elseif Callbacks.Skill1
-            and skillReady("Skill1")
-        then
+        elseif skillReady("Skill1") then
             if castSkill("Skill1") then
                 task.wait(0.13)
             end
