@@ -413,30 +413,25 @@ then
     )
 end
 
-local queue =
-    queue_on_teleport
-    or (
-        syn
-        and syn.queue_on_teleport
-    )
+-- At the level cap, allow Daily Quest-only maintenance even if this executor
+-- has no teleport queue API. Below the cap, queue support is needed to continue.
+local queue
+local queueBootstrap
+local atLevelCap = getgenv().IronSoulLevelStopReached == true
+    or (tonumber(LocalPlayer:GetAttribute("LG_Level")) or 0) >= 40
 
-if type(queue)
-        ~= "function"
-then
-    return stop(
-        "V59 requires queue_on_teleport for continuous progression."
-    )
-end
+if not atLevelCap then
+    queue = queue_on_teleport or (syn and syn.queue_on_teleport)
+    if type(queue) ~= "function" then
+        return stop("V2 requires queue_on_teleport to continue dungeon progression.")
+    end
 
-local queueBootstrap =
-    getgenv().IronSoulQueueBootstrap
-
-if type(queueBootstrap)
-        ~= "function"
-then
-    return stop(
-        "V59 bootstrap queue helper missing."
-    )
+    queueBootstrap = getgenv().IronSoulQueueBootstrap
+    if type(queueBootstrap) ~= "function" then
+        return stop("V2 bootstrap queue helper missing.")
+    end
+else
+    queueBootstrap = getgenv().IronSoulQueueBootstrap
 end
 
 local JOURNAL_FILE =
