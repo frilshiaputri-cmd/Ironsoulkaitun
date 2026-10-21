@@ -1,5 +1,5 @@
 -- K5-HUB IRONSOUL V2 - Auto skill port from IronForge_AutoFarm_PremiumUI_v6_STABLE
--- Preserves source behavior: E/Q/R key events, 0.70/0.70/1.50 cooldowns,
+-- Restored legacy V2 keyboard loop: G/E/R key events with per-key cooldowns,
 -- and a 2.50-second skill cycle while a living enemy target is nearby.
 -- Delta Android may not route VirtualInputManager keyboard events to mobile skill buttons.
 
@@ -13,8 +13,8 @@ return function()
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
 
-    local cooldowns = { Q = 0, E = 0, R = 0 }
-    local cooldownConfig = { Q = 0.70, E = 0.70, R = 1.50 }
+    local cooldowns = { G = 0, E = 0, R = 0 }
+    local cooldownConfig = { G = 0.70, E = 0.70, R = 1.50 }
     local skillInterval = 2.50
 
     local function hasNearbyTarget()
@@ -77,7 +77,7 @@ return function()
                 and hasNearbyTarget() then
                 local now = os.clock()
                 local usedAnySkill = false
-                for _, key in ipairs({"E", "Q", "R"}) do
+                for _, key in ipairs({"G", "E", "R"}) do
                     if now >= (cooldowns[key] or 0) then
                         local pressed = pressKey(key)
                         if pressed then usedAnySkill = true end
