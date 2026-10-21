@@ -1535,90 +1535,10 @@ local function claimGuidebook()
 end
 
 local function claimUpdateLog()
-    -- V2 setting: automatic Update Log claims are intentionally disabled.
-    -- Keep UpdateLog inspection/audit code below for reporting only.
+    -- V2 policy: Update Log auto-claim is disabled.
+    -- Keep this function as a no-op so existing call sites remain compatible.
     return
-    if not UpdateLogUtil
-        or type(
-            UpdateLogUtil.ClaimReward
-        ) ~= "function"
-        or type(ResUpdateLog)
-            ~= "table"
-    then
-        return
-    end
-
-    local index =
-        ResUpdateLog.__index
-
-    if type(index)
-        ~= "table"
-    then
-        return
-    end
-
-    for _, id in ipairs(index) do
-        local def =
-            ResUpdateLog[id]
-
-        if def then
-            local d =
-                pdata()
-
-            local state =
-                d
-                and d.UpdateLog
-                or {}
-
-            if state[id]
-                ~= true
-            then
-                local success =
-                    false
-
-                for attempt = 1, 2 do
-                    action(
-                        "Claim UpdateLog "
-                            .. tostring(id)
-                    )
-
-                    pcall(function()
-                        UpdateLogUtil:ClaimReward(
-                                LocalPlayer,
-                                id
-                            )
-                    end)
-
-                    if waitUntil(
-                        function()
-                            local now =
-                                pdata()
-
-                            return now
-                                and now.UpdateLog
-                                and now.UpdateLog[id]
-                                    == true
-                        end,
-                        3.5
-                    ) then
-                        success = true
-                        break
-                    end
-
-                    task.wait(0.20)
-                end
-
-                if not success then
-                    important(
-                        "UpdateLog pending | "
-                            .. tostring(id)
-                    )
-                end
-            end
-        end
-    end
 end
-
 
 local function inspectDailyLogin()
     if not DailyLoginUtil then
