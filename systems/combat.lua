@@ -201,6 +201,7 @@ local ok, result = pcall(function()
             "systems/patches/combat_v61_14_world1_tween_open_gate.patch",
             "systems/patches/combat_v61_14_far_traversal_tween.patch",
             "systems/patches/combat_v61_14_3_fast_settlement.patch",
+            "systems/patches/combat_v61_22_v2_enemy_tp_detection.patch",
         },
     })
 end)
