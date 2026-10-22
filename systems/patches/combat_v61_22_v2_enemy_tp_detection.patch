@@ -1,0 +1,50 @@
+--- a/systems/combat.lua
++++ b/systems/combat.lua
+@@ -1166,22 +1166,42 @@
+ local function liveEnemies()
+-    local container =
+-        enemyContainer()
+-
+     local out = {}
+-
+-    if not container then
+-        return out
+-    end
+-
+-    for _, model in ipairs(
+-        container:GetChildren()
+-    ) do
+-        if model:IsA("Model")
+-            and enemyAlive(model)
+-        then
+-            table.insert(out, model)
+-        end
++    local containers = {}
++    local seen = {}
++
++    -- Keep Kaitun V2 target selection and moveNear() unchanged.
++    -- Only make the existing V2 scanner find nested/alternate enemy models.
++    for _, name in ipairs({
++        "EnemyNpc",
++        "WorldEnemys",
++    }) do
++        local folder = workspace:FindFirstChild(name)
++        if folder then
++            table.insert(containers, folder)
++        end
++    end
++
++    for _, container in ipairs(containers) do
++        for _, model in ipairs(container:GetDescendants()) do
++            if model:IsA("Model")
++                and not seen[model]
++                and enemyAlive(model)
++            then
++                seen[model] = true
++                table.insert(out, model)
++            end
++        end
+     end
+ 
+     return out
+ end
