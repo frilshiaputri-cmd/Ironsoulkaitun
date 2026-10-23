@@ -1,0 +1,24 @@
+--- a/systems/combat.lua
++++ b/systems/combat.lua
+@@ -2240,6 +2240,13 @@
+ local function actionNameMatches(obj, action)
+     local n =
+         string.lower(obj.Name)
++    local buttonText = ""
++    pcall(function()
++        buttonText = string.lower(tostring(obj.Text or ""))
++    end)
++    local isQButton =
++        n == "q" or n == "skillq" or buttonText == "q"
+ 
+     if action == "Skill1" then
+@@ -2244,7 +2251,8 @@
+     if action == "Skill1" then
+         return n == "skill1"
++            or isQButton
+             or string.find(
+                 n,
+                 "skill1",
+                 1,
+                 true
+             )
