@@ -1,0 +1,34 @@
+--- a/systems/combat.lua
++++ b/systems/combat.lua
+@@ -2704,3 +2704,25 @@
+-    -- HEADLESS_FAILED:
+-    -- skills may still fire, but basic attack deliberately does nothing.
+-    -- This keeps the diagnostic truly no-click.
++    -- HEADLESS_FAILED: the direct remote was not verified, so use a short
++    -- ordinary left-click input as the basic-attack fallback. Target selection,
++    -- distance checks, and facing remain owned by the V2 combat controller.
++    if not enemyAlive(enemy) then
++        return
++    end
++
++    local clickOk = pcall(function()
++        local input = game:GetService("VirtualInputManager")
++        local camera = workspace.CurrentCamera
++        local viewport = camera and camera.ViewportSize or Vector2.new(800, 600)
++        local x = math.floor(viewport.X * 0.5)
++        local y = math.floor(viewport.Y * 0.5)
++        input:SendMouseButtonEvent(x, y, 0, true, game, 0)
++        task.wait(0.035)
++        input:SendMouseButtonEvent(x, y, 0, false, game, 0)
++    end)
++
++    if not clickOk then
++        pcall(function()
++            local virtualUser = game:GetService("VirtualUser")
++            virtualUser:CaptureController()
++            virtualUser:Button1Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
++            task.wait(0.035)
++            virtualUser:Button1Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
++        end)
++    end
+ end
