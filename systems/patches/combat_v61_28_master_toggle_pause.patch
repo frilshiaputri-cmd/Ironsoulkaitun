@@ -1,0 +1,12 @@
+--- a/systems/combat.lua
++++ b/systems/combat.lua
+@@ -5813,2 +5813,6 @@
+ while not stopReason do
++    if getgenv().IronSoulMasterEnabled == false then
++        task.wait(0.2)
++    else
+     CurrentState = state
+@@ -7428,2 +7432,3 @@
+     save()
++    end
+ end
