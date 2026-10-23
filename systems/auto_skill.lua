@@ -112,6 +112,32 @@ return function()
         return ok
     end
 
+    -- Weapon switch is independently rate-limited to once every 5 seconds.
+    local lastWeaponSwitch = -math.huge
+    local function switchToNextWeapon()
+        local now = os.clock()
+        if now - lastWeaponSwitch < 5 then return false end
+
+        local backpack = player and player:FindFirstChildOfClass("Backpack")
+        local character = player and player.Character
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        if not backpack or not humanoid then return false end
+
+        local tools = {}
+        for _, item in ipairs(backpack:GetChildren()) do
+            if item:IsA("Tool") then
+                table.insert(tools, item)
+            end
+        end
+        if #tools == 0 then return false end
+
+        lastWeaponSwitch = now
+        local ok = pcall(function()
+            humanoid:EquipTool(tools[1])
+        end)
+        return ok
+    end
+
     task.spawn(function()
         while player and player.Parent do
             local config = getgenv().IronSoulConfig or {}
@@ -120,6 +146,7 @@ return function()
                 and config.FARM ~= "OFF"
                 and config.AutoSkill ~= false
             if canFarm and hasNearbyTarget() then
+                local usedSkill = false
                 for _, key in ipairs(keys) do
                     local now = os.clock()
                     if now >= (nextAllowed[key] or 0) then
@@ -127,6 +154,7 @@ return function()
                         if observedCD == nil or observedCD <= 0 then
                             local ok = pressKey(key)
                             if ok then
+                                usedSkill = true
                                 lastPressed[key] = now
                                 nextAllowed[key] = now + fallbackCD[key]
                             else
@@ -138,6 +166,9 @@ return function()
                         end
                         task.wait(0.04)
                     end
+                end
+                if usedSkill and (getgenv().IronSoulConfig or {}).AutoSwitchWeapon ~= false then
+                    switchToNextWeapon()
                 end
             end
             task.wait(scanInterval)
