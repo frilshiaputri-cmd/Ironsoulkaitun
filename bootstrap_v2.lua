@@ -9,7 +9,6 @@ getgenv().IronSoulConfig =
         FARM = "NEWBIE",
         TICKETS = "SMART",
         HEADLESS = true,
-        AutoSkill = true,
     }
 
 local Config = getgenv().IronSoulConfig
@@ -480,7 +479,6 @@ local config = {
     HEADLESS = %s,
     DEBUG_LOGS = %s,
     LEVEL_STOP = %s,
-    AutoSkill = %s,
 }
 getgenv().IronSoulConfig = config
 
@@ -520,7 +518,6 @@ end)
         tostring(config.HEADLESS ~= false),
         tostring(config.DEBUG_LOGS == true),
         tostring(tonumber(config.LEVEL_STOP) or 40),
-        tostring(config.AutoSkill ~= false),
         BASE .. "bootstrap_v2.lua",
         VERSION
     )
