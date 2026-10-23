@@ -114,7 +114,7 @@ if type(originalLoadRaw) == "function" then
     end)
 end
 
--- Android/mobile fallback: activate visible G/Q/E/R skill buttons directly.
+-- Android/mobile fallback: activate visible E/Q/R skill buttons directly.
 -- The native callback system remains enabled; this covers games where the
 -- skill controls are mobile GuiButtons and keyboard injection is ignored.
 do
