@@ -68,8 +68,8 @@ then
     return caveResult
 end
 
--- Auto Skill V2 menggunakan loop input keyboard E/Q/R saja.
--- Jalankan modul keyboard loop satu kali; fitur combat lain tetap memakai patch chain.
+-- Auto Skill V2 memakai input keyboard G/E/R saja (tanpa aktivasi tombol GUI).
+-- Modul skill berjalan terpisah; patch chain tetap menangani target dan basic attack.
 do
     local env = getgenv()
     env.IronSoulConfig = env.IronSoulConfig or {}
@@ -209,6 +209,7 @@ local ok, result = pcall(function()
             "systems/patches/combat_v61_27_allow_skill_attempt_on_stale_cooldown.patch",
             "systems/patches/combat_v61_28_yuszx_autoskill_activate_fallback.patch",
             "systems/patches/combat_v61_29_keyboard_only_autoskill.patch",
+            "systems/patches/combat_v61_30_basic_attack_input_fallback.patch",
         },
     })
 end)
