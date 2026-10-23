@@ -479,6 +479,8 @@ local config = {
     HEADLESS = %s,
     DEBUG_LOGS = %s,
     LEVEL_STOP = %s,
+    AUTO_SEASON_SPIN = %s,
+    AUTO_CLAIM_ALL = %s,
 }
 getgenv().IronSoulConfig = config
 
@@ -518,6 +520,8 @@ end)
         tostring(config.HEADLESS ~= false),
         tostring(config.DEBUG_LOGS == true),
         tostring(tonumber(config.LEVEL_STOP) or 40),
+        tostring(config.AUTO_SEASON_SPIN == true),
+        tostring(config.AUTO_CLAIM_ALL == true),
         BASE .. "bootstrap_v2.lua",
         VERSION
     )
