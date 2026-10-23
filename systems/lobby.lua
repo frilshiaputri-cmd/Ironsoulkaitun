@@ -191,17 +191,17 @@ end
 -- Do not silently fall back to an upstream lobby build that can re-enable
 -- reward claims or SeasonTicket spending if a patch fails.
 local cfg = getgenv().IronSoulConfig or {}
-cfg.AUTO_CLAIM_ALL = false
+cfg.AUTO_CLAIM_ALL = cfg.AUTO_CLAIM_ALL == true
 cfg.AUTO_CLAIM = false
-cfg.AUTO_SEASON_SPIN = false
-cfg.AUTO_SEASON_PASS = false
-cfg.AUTO_SEVEN_DAILY = false
-cfg.AUTO_GUIDEBOOK = false
-cfg.AUTO_UPDATE_LOG = false
-cfg.AUTO_DAILY_LOGIN = false
+cfg.AUTO_SEASON_SPIN = cfg.AUTO_SEASON_SPIN == true
+cfg.AUTO_SEASON_PASS = cfg.AUTO_SEASON_PASS == true
+cfg.AUTO_SEVEN_DAILY = cfg.AUTO_SEVEN_DAILY == true
+cfg.AUTO_GUIDEBOOK = cfg.AUTO_GUIDEBOOK == true
+cfg.AUTO_UPDATE_LOG = cfg.AUTO_UPDATE_LOG == true
+cfg.AUTO_DAILY_LOGIN = cfg.AUTO_DAILY_LOGIN == true
 getgenv().IronSoulConfig = cfg
-getgenv().IronSoulDisableAutoClaimAll = true
-getgenv().IronSoulDisableSeasonSpin = true
+getgenv().IronSoulDisableAutoClaimAll = not cfg.AUTO_CLAIM_ALL
+getgenv().IronSoulDisableSeasonSpin = not cfg.AUTO_SEASON_SPIN
 
 local loadRaw = getgenv().IronSoulLoadRaw
 if type(loadRaw) ~= "function" then
