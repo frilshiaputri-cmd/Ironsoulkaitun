@@ -1,0 +1,9 @@
+--- a/systems/combat.lua
++++ b/systems/combat.lua
+@@ -2430,3 +2430,7 @@
+ local function castSkill(action)
++    local cfg = getgenv().IronSoulConfig
++    if type(cfg) == "table" and cfg.AutoSkill == false then
++        return false
++    end
+     local fn =
