@@ -21,3 +21,15 @@
                  1,
                  true
              )
+@@ -2470,3 +2478,10 @@
+     end
+ 
++    -- Fallback for mobile executors without firesignal: use Roblox's native
++    -- GuiButton activation path for the actual Q skill button.
++    if not ok and button and button.Parent then
++        ok, err = pcall(function()
++            button:Activate()
++        end)
++    end
++
+     if not ok and type(fn) == "function" then
