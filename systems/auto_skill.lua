@@ -1,5 +1,5 @@
--- K5-HUB IRONSOUL V2 - Auto skill / attack cooldown controller
--- Keyboard skill loop: G/E/R. Uses UI cooldown indicators when readable and
+-- Auto Skill V2 keyboard-only loop: G/E/R. UI is read only for cooldown hints; skill activation uses keyboard input.
+-- No GUI button activation; combat targeting/attack logic remains in combat.lua.
 -- local fallback cooldowns otherwise. No weapon swapping during combat.
 
 local started = false
