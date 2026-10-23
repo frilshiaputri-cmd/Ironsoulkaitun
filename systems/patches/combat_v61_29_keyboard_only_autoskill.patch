@@ -1,0 +1,7 @@
+--- a/systems/combat.lua
++++ b/systems/combat.lua
+@@ -2430,1 +2430,4 @@
+ local function castSkill(action)
++    -- Keyboard-only Auto Skill is handled by systems/auto_skill.lua (G/E/R).
++    -- Disable native GUI callback/button activation to avoid mixed input paths.
++    return false
