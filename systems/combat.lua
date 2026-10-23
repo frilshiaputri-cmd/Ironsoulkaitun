@@ -198,6 +198,7 @@ local ok, result = pcall(function()
             "systems/patches/combat_v61_24_force_auto_skill_cycle.patch",
             "systems/patches/combat_v61_25_unblock_auto_skill_attempts.patch",
             "systems/patches/combat_v61_26_refresh_skill_button_detection.patch",
+            "systems/patches/combat_v61_27_fix_q_button_detection.patch",
         },
     })
 end)
