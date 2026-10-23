@@ -1644,7 +1644,7 @@ local function spendSeasonTickets()
             "SeasonTicket"
         )
 
-    while tickets >= 3 do
+    while tickets >= 3 and (getgenv().IronSoulConfig or {}).AUTO_SEASON_SPIN == true do
         local before = tickets
 
         action(
@@ -1682,7 +1682,7 @@ local function spendSeasonTickets()
             num(changed)
     end
 
-    while tickets > 0 do
+    while tickets > 0 and (getgenv().IronSoulConfig or {}).AUTO_SEASON_SPIN == true do
         local before = tickets
 
         action(
@@ -1736,9 +1736,9 @@ if not rewardLevel then
     end
 end
 
--- V2 reward policy: ONLY claim Daily Quest. Other reward systems remain inactive.
--- Keep the existing level gate; do not claim Season Pass, Seven Daily, Guidebook,
--- Update Log, or Daily Login rewards from this lobby flow.
+-- V2 reward policy: Daily Quest remains enabled by default at Lv40.
+-- Optional Auto Claim All and Season Ticket spin are controlled independently
+-- by IronCodexFarm's Redeem-tab toggles through IronSoulConfig.
 local rewardClaimsAttempted = false
 if rewardLevel and rewardLevel >= 40 then
     rewardClaimsAttempted = true
@@ -1751,16 +1751,46 @@ local dailyLoginPending,
     dailyLoginRows =
         inspectDailyLogin()
 
--- Kick only after all Lv40 reward-claim functions above have been attempted.
-if rewardClaimsAttempted then
-    task.wait(2)
-    pcall(function()
-        LocalPlayer:Kick("IronSoul: Lv40 daily/reward claims attempted; leaving server.")
-    end)
-end
+-- Watch the UI-controlled Auto Claim All toggle. It only uses reward handlers
+-- already implemented in this V2 lobby system and keeps the existing Lv40 gate.
+task.spawn(function()
+    local handled = false
+    while LocalPlayer and LocalPlayer.Parent do
+        local cfg = getgenv().IronSoulConfig or {}
+        if cfg.AUTO_CLAIM_ALL == true and not handled then
+            local currentLevel = tonumber(LocalPlayer:GetAttribute("LG_Level")) or rewardLevel
+            if currentLevel and currentLevel >= 40 then
+                important("Auto Claim All ON | starting V2 reward handlers")
+                pcall(claimDailyQuest)
+                pcall(claimSeasonPass)
+                pcall(claimSevenDaily)
+                pcall(claimGuidebook)
+                pcall(claimUpdateLog)
+                handled = true
+                important("Auto Claim All finished | V2 handlers attempted")
+            else
+                important("Auto Claim All waiting for Lv40 | current=" .. tostring(currentLevel or "unknown"))
+            end
+        elseif cfg.AUTO_CLAIM_ALL ~= true then
+            handled = false
+        end
+        task.wait(1)
+    end
+end)
 
--- AUTO SEASON SPIN DISABLED: keep SeasonTicket balance untouched.
--- spendSeasonTickets()
+-- Keep the existing lobby running after claims; do not kick the player.
+-- Season Ticket spending is now opt-in and can be switched off from the UI.
+task.spawn(function()
+    while LocalPlayer and LocalPlayer.Parent do
+        local cfg = getgenv().IronSoulConfig or {}
+        if cfg.AUTO_SEASON_SPIN == true then
+            pcall(spendSeasonTickets)
+            task.wait(1)
+        else
+            task.wait(0.5)
+        end
+    end
+end)
 
 local function writeRewardAudit()
     if type(writefile)
