@@ -114,6 +114,23 @@ if type(originalLoadRaw) == "function" then
     end)
 end
 
+-- Android/mobile fallback: activate visible G/Q/E/R skill buttons directly.
+-- The native callback system remains enabled; this covers games where the
+-- skill controls are mobile GuiButtons and keyboard injection is ignored.
+do
+    local okTouch, touchEnabled = pcall(function()
+        return game:GetService("UserInputService").TouchEnabled
+    end)
+    if okTouch and touchEnabled and type(originalLoadRaw) == "function" then
+        pcall(function()
+            local okModule, startMobileSkills = originalLoadRaw("systems/auto_skill.lua")
+            if okModule and type(startMobileSkills) == "function" then
+                startMobileSkills()
+            end
+        end)
+    end
+end
+
 -- Weapon-aware skill loadout is deliberately after Lobby/EquipBest has already
 -- completed and before combat initialization. Cave V61.19 chase remains armed
 -- but motionless until the combat controller later announces readiness, so this
