@@ -1,99 +1,111 @@
--- K5-HUB IRONSOUL V2 - Auto skill port from IronForge_AutoFarm_PremiumUI_v6_STABLE
--- Preserves source behavior: E/Q/R key events, 0.70/0.70/1.50 cooldowns,
--- and a 2.50-second skill cycle while a living enemy target is nearby.
--- Delta Android may not route VirtualInputManager keyboard events to mobile skill buttons.
-
-local started = false
+-- K5-HUB IRONSOUL V2 - Mobile-first Auto Skill
+-- Activates on-screen skill buttons labelled G/Q/E/R first; keyboard events
+-- are only a fallback when the corresponding button cannot be found.
 
 return function()
-    if started then return end
-    started = true
+    local env = getgenv()
+    if env.IronSoulMobileSkillLoopStarted then return end
+    env.IronSoulMobileSkillLoopStarted = true
 
-    local VirtualInputManager = game:GetService("VirtualInputManager")
     local Players = game:GetService("Players")
+    local VirtualInputManager = game:GetService("VirtualInputManager")
     local player = Players.LocalPlayer
-
-    local cooldowns = { Q = 0, E = 0, R = 0 }
-    local cooldownConfig = { Q = 0.70, E = 0.70, R = 1.50 }
-    local skillInterval = 2.50
+    local keys = {"G", "Q", "E", "R"}
+    local cooldowns = {G = 0, Q = 0, E = 0, R = 0}
+    local cooldownsByKey = {G = 1.0, Q = 0.7, E = 0.7, R = 1.5}
 
     local function hasNearbyTarget()
         local character = player and player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
         if not root then return false end
-
         for _, model in ipairs(workspace:GetDescendants()) do
             if model:IsA("Model") and model ~= character then
                 local humanoid = model:FindFirstChildOfClass("Humanoid")
-                local targetRoot = model:FindFirstChild("HumanoidRootPart")
-                    or model.PrimaryPart
+                local targetRoot = model:FindFirstChild("HumanoidRootPart") or model.PrimaryPart
                 if humanoid and humanoid.Health > 0 and targetRoot
-                    and not Players:GetPlayerFromCharacter(model) then
-                    if (targetRoot.Position - root.Position).Magnitude <= 600 then
-                        return true
-                    end
+                    and not Players:GetPlayerFromCharacter(model)
+                    and (targetRoot.Position - root.Position).Magnitude <= 600 then
+                    return true
                 end
             end
         end
         return false
     end
 
-    local function pressKey(keyName)
-        local keyCode = Enum.KeyCode[keyName]
-        if not keyCode then return false end
-
-        return pcall(function()
-            VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
-            task.wait(0.02)
-            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-        end)
+    local function buttonMatches(button, key)
+        local name = string.lower(tostring(button.Name or "")):gsub("[%s_%-]", "")
+        local text = ""
+        pcall(function() text = string.lower(tostring(button.Text or "")):gsub("%s+", "") end)
+        local aliases = {
+            G = {g = true, skillg = true, skill4 = true},
+            Q = {q = true, skillq = true, skill1 = true},
+            E = {e = true, skille = true, skill2 = true},
+            R = {r = true, skillr = true, skill3 = true, ultimate = true},
+        }
+        return aliases[key][name] == true or aliases[key][text] == true
     end
 
-    -- Ported from the user's IronHub.txt: after a skill cycle, equip the
-    -- next available Tool from Backpack. Do not touch lobby equipment remotes.
-    local function switchToNextWeapon()
-        local backpack = player and player:FindFirstChildOfClass("Backpack")
-        local character = player and player.Character
-        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-        if not backpack or not humanoid then return false end
-
-        for _, item in ipairs(backpack:GetChildren()) do
-            if item:IsA("Tool") then
-                local ok = pcall(function()
-                    humanoid:EquipTool(item)
+    local function findSkillButton(key)
+        local pg = player and player:FindFirstChildOfClass("PlayerGui")
+        if not pg then return nil end
+        for _, obj in ipairs(pg:GetDescendants()) do
+            if obj:IsA("GuiButton") and buttonMatches(obj, key) then
+                local visible = true
+                pcall(function()
+                    visible = obj.Visible and obj.Active
+                    local parent = obj.Parent
+                    while visible and parent and parent ~= pg do
+                        if parent:IsA("GuiObject") and not parent.Visible then visible = false end
+                        parent = parent.Parent
+                    end
                 end)
-                if ok then return true end
+                if visible then return obj end
             end
         end
-        return false
+        return nil
+    end
+
+    local function activateSkill(key)
+        local button = findSkillButton(key)
+        if button then
+            local ok = pcall(function() button:Activate() end)
+            if ok then return true end
+            if type(firesignal) == "function" then
+                for _, signalName in ipairs({"Activated", "MouseButton1Click", "MouseButton1Down"}) do
+                    local success = pcall(function() firesignal(button[signalName]) end)
+                    if success then return true end
+                end
+            end
+        end
+
+        local keyCode = Enum.KeyCode[key]
+        if not keyCode then return false end
+        return pcall(function()
+            VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+            task.wait(0.03)
+            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+        end)
     end
 
     task.spawn(function()
         while player and player.Parent do
             local config = getgenv().IronSoulConfig or {}
             if not getgenv().IronSoulLevelStopReached
+                and getgenv().IronSoulMasterEnabled ~= false
                 and config.FARM ~= "OFF"
                 and config.AutoSkill ~= false
                 and hasNearbyTarget() then
-                local now = os.clock()
-                local usedAnySkill = false
-                for _, key in ipairs({"E", "Q", "R"}) do
+                for _, key in ipairs(keys) do
+                    local now = os.clock()
                     if now >= (cooldowns[key] or 0) then
-                        local pressed = pressKey(key)
-                        if pressed then usedAnySkill = true end
-                        cooldowns[key] = now + cooldownConfig[key]
-                        task.wait(0.15)
+                        activateSkill(key)
+                        cooldowns[key] = now + cooldownsByKey[key]
+                        task.wait(0.12)
                     end
                 end
-
-                -- Match IronHub.txt behavior: switch weapon after skill use.
-                -- A short pause prevents overlapping the equip with skill input.
-                if usedAnySkill and config.AutoSwitchWeapon ~= false then
-                    switchToNextWeapon()
-                    task.wait(0.3)
-                end
             end
-            task.wait(skillInterval)
+            task.wait(0.35)
         end
+        getgenv().IronSoulMobileSkillLoopStarted = nil
     end)
 end
