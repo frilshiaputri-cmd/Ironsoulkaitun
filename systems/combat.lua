@@ -68,26 +68,16 @@ then
     return caveResult
 end
 
--- Auto Skill V2 memakai input keyboard G/E/R saja (tanpa aktivasi tombol GUI).
--- Modul skill berjalan terpisah; patch chain tetap menangani target dan basic attack.
+-- K5-HUB V1 explicitly enables the same native V2 combat Auto Skill chain.
 do
     local env = getgenv()
     env.IronSoulConfig = env.IronSoulConfig or {}
     env.IronSoulConfig.AutoSkill = true
-    env.K5V1NativeAutoSkill = false
-
-    local loadRaw = env.IronSoulLoadRaw
-    if type(loadRaw) == "function" and not env.IronSoulKeyboardSkillLoopStarted then
-        local ok, startLoop = loadRaw("systems/auto_skill.lua")
-        if ok and type(startLoop) == "function" then
-            local runOk = pcall(startLoop)
-            if runOk then
-                env.IronSoulKeyboardSkillLoopStarted = true
-            end
-        end
-    end
+    env.K5V1NativeAutoSkill = true
 end
 
+-- Auto Skill dijalankan oleh sistem native V2 di combat patch chain di bawah.
+-- Hindari modul systems/auto_skill.lua (input keyboard Q/E/R) agar tidak duplikat.
 local originalLoadRaw = getgenv().IronSoulLoadRaw
 
 local function getPatcher()
@@ -194,6 +184,7 @@ local ok, result = pcall(function()
         patch_paths = {
             "systems/patches/combat_v61_7_boss_safe.patch",
             "systems/patches/combat_v61_8_burst_safe.patch",
+            "systems/patches/combat_v61_8_skill_telemetry.patch",
             "systems/patches/combat_v61_8_learned_transition.patch",
             "systems/patches/combat_v61_9_unknown_objective.patch",
             "systems/patches/combat_v61_10_objective_scope_hotfix.patch",
@@ -201,9 +192,12 @@ local ok, result = pcall(function()
             "systems/patches/combat_v61_14_world1_tween_open_gate.patch",
             "systems/patches/combat_v61_14_far_traversal_tween.patch",
             "systems/patches/combat_v61_14_3_fast_settlement.patch",
-            "systems/patches/combat_v61_22_v2_enemy_tp_detection.patch",
-            "systems/patches/combat_v61_29_keyboard_only_autoskill.patch",
-            "systems/patches/combat_v61_30_basic_attack_input_fallback.patch",
+            "systems/patches/combat_v61_15_skill_input_fallback.patch",
+            "systems/patches/combat_v61_22_skill_no_local_level_gate.patch",
+            "systems/patches/combat_v61_23_auto_skill_u.patch",
+            "systems/patches/combat_v61_24_force_auto_skill_cycle.patch",
+            "systems/patches/combat_v61_25_unblock_auto_skill_attempts.patch",
+            "systems/patches/combat_v61_26_refresh_skill_button_detection.patch",
         },
     })
 end)
