@@ -1,6 +1,6 @@
--- K5-HUB IRONSOUL V2 - Mobile-first Auto Skill
--- Activates on-screen skill buttons labelled G/Q/E/R first; keyboard events
--- are only a fallback when the corresponding button cannot be found.
+-- K5-HUB IRONSOUL V2 - robust G/Q/E/R skill detection
+-- Finds mobile skill controls by button name, visible text, descendant labels,
+-- tooltip/attributes, and common Skill1/Skill2/Skill3/Skill4 aliases.
 
 return function()
     local env = getgenv()
@@ -8,11 +8,22 @@ return function()
     env.IronSoulMobileSkillLoopStarted = true
 
     local Players = game:GetService("Players")
+    local UserInputService = game:GetService("UserInputService")
     local VirtualInputManager = game:GetService("VirtualInputManager")
     local player = Players.LocalPlayer
     local keys = {"G", "Q", "E", "R"}
     local cooldowns = {G = 0, Q = 0, E = 0, R = 0}
     local cooldownsByKey = {G = 1.0, Q = 0.7, E = 0.7, R = 1.5}
+    local aliases = {
+        G = {g=true, skillg=true, skill4=true, fourthskill=true, skillfour=true},
+        Q = {q=true, skillq=true, skill1=true, firstskill=true, skillone=true},
+        E = {e=true, skille=true, skill2=true, secondskill=true, skilltwo=true},
+        R = {r=true, skillr=true, skill3=true, thirdskill=true, skillthree=true, ultimate=true, ult=true},
+    }
+
+    local function normalize(value)
+        return string.lower(tostring(value or "")):gsub("[%s_%-%.:]", "")
+    end
 
     local function hasNearbyTarget()
         local character = player and player.Character
@@ -32,59 +43,98 @@ return function()
         return false
     end
 
-    local function buttonMatches(button, key)
-        local name = string.lower(tostring(button.Name or "")):gsub("[%s_%-]", "")
-        local text = ""
-        pcall(function() text = string.lower(tostring(button.Text or "")):gsub("%s+", "") end)
-        local aliases = {
-            G = {g = true, skillg = true, skill4 = true},
-            Q = {q = true, skillq = true, skill1 = true},
-            E = {e = true, skille = true, skill2 = true},
-            R = {r = true, skillr = true, skill3 = true, ultimate = true},
-        }
-        return aliases[key][name] == true or aliases[key][text] == true
+    local function candidateText(obj)
+        local values = {obj.Name}
+        pcall(function()
+            if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                table.insert(values, obj.Text)
+            end
+            table.insert(values, obj:GetAttribute("KeyCode"))
+            table.insert(values, obj:GetAttribute("Key"))
+            table.insert(values, obj:GetAttribute("Skill"))
+            table.insert(values, obj:GetAttribute("Action"))
+            table.insert(values, obj:GetAttribute("Hotkey"))
+            table.insert(values, obj:GetAttribute("ToolTip"))
+        end)
+        return values
+    end
+
+    local function matchesKey(obj, key)
+        for _, value in ipairs(candidateText(obj)) do
+            local n = normalize(value)
+            if aliases[key][n] then return true end
+            -- Accept strings such as "Press [Q]" or "Q Skill", but avoid
+            -- treating arbitrary longer words containing the letter as a match.
+            if n == "press"..string.lower(key)
+                or n == "key"..string.lower(key)
+                or n == "skill"..string.lower(key) then
+                return true
+            end
+        end
+        return false
+    end
+
+    local function isVisible(button, pg)
+        local visible = true
+        pcall(function()
+            if not button.Visible or not button.Active then visible = false end
+            local parent = button.Parent
+            while visible and parent and parent ~= pg do
+                if parent:IsA("GuiObject") and not parent.Visible then visible = false end
+                parent = parent.Parent
+            end
+        end)
+        return visible
     end
 
     local function findSkillButton(key)
         local pg = player and player:FindFirstChildOfClass("PlayerGui")
         if not pg then return nil end
+        local best, bestScore
         for _, obj in ipairs(pg:GetDescendants()) do
-            if obj:IsA("GuiButton") and buttonMatches(obj, key) then
-                local visible = true
-                pcall(function()
-                    visible = obj.Visible and obj.Active
-                    local parent = obj.Parent
-                    while visible and parent and parent ~= pg do
-                        if parent:IsA("GuiObject") and not parent.Visible then visible = false end
-                        parent = parent.Parent
-                    end
-                end)
-                if visible then return obj end
+            if obj:IsA("GuiButton") and isVisible(obj, pg) then
+                local score = 0
+                if matchesKey(obj, key) then score = score + 10 end
+                -- Some games put the hotkey on a child TextLabel/ImageLabel.
+                for _, child in ipairs(obj:GetDescendants()) do
+                    if matchesKey(child, key) then score = score + 5 break end
+                end
+                if score > 0 and (not bestScore or score > bestScore) then
+                    best, bestScore = obj, score
+                end
             end
         end
-        return nil
+        return best
     end
 
     local function activateSkill(key)
         local button = findSkillButton(key)
         if button then
-            local ok = pcall(function() button:Activate() end)
+            local ok, result = pcall(function() return button:Activate() end)
             if ok then return true end
             if type(firesignal) == "function" then
                 for _, signalName in ipairs({"Activated", "MouseButton1Click", "MouseButton1Down"}) do
-                    local success = pcall(function() firesignal(button[signalName]) end)
-                    if success then return true end
+                    local signal
+                    pcall(function() signal = button[signalName] end)
+                    if signal then
+                        local success = pcall(firesignal, signal)
+                        if success then return true end
+                    end
                 end
             end
         end
 
+        -- Keyboard fallback is useful on desktop. On touch-only devices this
+        -- may be ignored by the game, so the button lookup above is preferred.
         local keyCode = Enum.KeyCode[key]
         if not keyCode then return false end
-        return pcall(function()
+        local ok = pcall(function()
             VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
             task.wait(0.03)
             VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
         end)
+        if not ok and UserInputService.TouchEnabled then return false end
+        return ok
     end
 
     task.spawn(function()
