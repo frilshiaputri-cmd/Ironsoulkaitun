@@ -394,20 +394,24 @@ return function(opts)
             patch,
             targetPath
         )
-        if patchOk then
-            patched = patchResult
-        else
-            local warning = "PATCH SKIPPED: " .. tostring(patchPath) .. " | " .. tostring(patchResult)
+        if not patchOk then
+            local message = "PATCH FAILED: " .. tostring(patchPath) .. " | " .. tostring(patchResult)
+
+            -- A partial patch chain can execute an incompatible combat source.
+            -- Stop here and report the exact patch instead of running mixed code.
             if type(getgenv) == "function" then
                 local env = getgenv()
                 if type(env.IronSoulStatus) == "function" then
-                    pcall(env.IronSoulStatus, warning)
+                    pcall(env.IronSoulStatus, message)
                 end
             end
             if type(warn) == "function" then
-                warn(warning)
+                warn(message)
             end
+            error(message)
         end
+
+        patched = patchResult
     end
 
     local fn, err =
