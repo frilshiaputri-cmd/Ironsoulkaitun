@@ -1,4 +1,4 @@
--- K5-HUB IRONSOUL V2 - robust G/Q/E/R skill detection
+-- IRONSOUL KAITUN V2 - legacy E/Q/R Auto Skill loop
 -- Finds mobile skill controls by button name, visible text, descendant labels,
 -- tooltip/attributes, and common Skill1/Skill2/Skill3/Skill4 aliases.
 
@@ -11,13 +11,12 @@ return function()
     local UserInputService = game:GetService("UserInputService")
     local VirtualInputManager = game:GetService("VirtualInputManager")
     local player = Players.LocalPlayer
-    local keys = {"G", "Q", "E", "R"}
-    local cooldowns = {G = 0, Q = 0, E = 0, R = 0}
-    local cooldownsByKey = {G = 1.0, Q = 0.7, E = 0.7, R = 1.5}
+    local keys = {"E", "Q", "R"}
+    local cooldowns = {E = 0, Q = 0, R = 0}
+    local cooldownsByKey = {E = 0.7, Q = 0.7, R = 1.5}
     local aliases = {
-        G = {g=true, skillg=true, skill4=true, fourthskill=true, skillfour=true},
-        Q = {q=true, skillq=true, skill1=true, firstskill=true, skillone=true},
         E = {e=true, skille=true, skill2=true, secondskill=true, skilltwo=true},
+        Q = {q=true, skillq=true, skill1=true, firstskill=true, skillone=true},
         R = {r=true, skillr=true, skill3=true, thirdskill=true, skillthree=true, ultimate=true, ult=true},
     }
 
