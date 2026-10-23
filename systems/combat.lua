@@ -72,8 +72,9 @@ end
 do
     local env = getgenv()
     env.IronSoulConfig = env.IronSoulConfig or {}
-    env.IronSoulConfig.AutoSkill = true
-    env.K5V1NativeAutoSkill = true
+    -- Preserve the Airflow Auto Skill toggle; default to enabled only when unset.
+    env.IronSoulConfig.AutoSkill = env.IronSoulConfig.AutoSkill ~= false
+    env.K5V1NativeAutoSkill = env.IronSoulConfig.AutoSkill == true
 end
 
 -- Auto Skill dijalankan oleh sistem native V2 di combat patch chain di bawah.
@@ -200,6 +201,7 @@ local ok, result = pcall(function()
             "systems/patches/combat_v61_26_refresh_skill_button_detection.patch",
             "systems/patches/combat_v61_27_fix_q_button_detection.patch",
             "systems/patches/combat_v61_28_master_toggle_pause.patch",
+            "systems/patches/combat_v61_29_respect_auto_skill_toggle.patch",
         },
     })
 end)
